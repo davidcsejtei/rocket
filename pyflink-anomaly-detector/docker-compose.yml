@@ -3,14 +3,14 @@ version: '3.8'
 services:
   # Flink JobManager
   flink-jobmanager:
-    image: flink:1.18-scala_2.12-java11
+    image: flink:1.17.1-scala_2.12-java11
     hostname: flink-jobmanager
     container_name: flink-jobmanager
     ports:
-      - "8081:8081"
+      - "8082:8081"
     command: jobmanager
     environment:
-      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager
+      FLINK_PROPERTIES: "jobmanager.rpc.address: flink-jobmanager"
     volumes:
       - flink-checkpoints:/tmp/flink-checkpoints
       - flink-savepoints:/tmp/flink-savepoints
@@ -19,14 +19,14 @@ services:
 
   # Flink TaskManager
   flink-taskmanager:
-    image: flink:1.18-scala_2.12-java11
+    image: flink:1.17.1-scala_2.12-java11
     hostname: flink-taskmanager
     container_name: flink-taskmanager
     depends_on:
       - flink-jobmanager
     command: taskmanager
     environment:
-      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager|taskmanager.numberOfTaskSlots: 2
+      FLINK_PROPERTIES: "jobmanager.rpc.address: flink-jobmanager\ntaskmanager.numberOfTaskSlots: 2"
     volumes:
       - flink-checkpoints:/tmp/flink-checkpoints
       - flink-savepoints:/tmp/flink-savepoints
