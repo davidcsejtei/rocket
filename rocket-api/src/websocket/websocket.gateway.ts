@@ -9,7 +9,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger, Inject } from '@nestjs/common';
 import { KafkaService } from '../kafka/kafka.service';
+import { AnomalyService } from '../anomaly/anomaly.service';
 import { TelemetryMessage, KafkaStatus } from '../types/telemetry.types';
+import { AnomalyAlert, AnomalyStatus } from '../types/anomaly.types';
 
 @WebSocketGateway({
   cors: {
@@ -23,7 +25,10 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('WebSocketGateway');
 
-  constructor(private readonly kafkaService: KafkaService) {}
+  constructor(
+    private readonly kafkaService: KafkaService,
+    private readonly anomalyService: AnomalyService
+  ) {}
 
   afterInit(): void {
     this.kafkaService.onTelemetryMessage((message: TelemetryMessage) => {
@@ -34,11 +39,20 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
       this.server.emit('kafka-status', status);
     });
 
+    this.anomalyService.onAnomalyAlert((alert: AnomalyAlert) => {
+      this.server.emit('anomaly-alert', alert);
+    });
+
+    this.anomalyService.onStatusChange((status: AnomalyStatus) => {
+      this.server.emit('anomaly-status', status);
+    });
+
     setInterval(() => {
       this.server.emit('kafka-status', this.kafkaService.getStatus());
+      this.server.emit('anomaly-status', this.anomalyService.getStatus());
     }, 5000);
 
-    this.logger.log('WebSocket Gateway initialized with Kafka integration');
+    this.logger.log('WebSocket Gateway initialized with Kafka and Anomaly integration');
   }
 
   handleConnection(client: Socket): void {
@@ -49,6 +63,7 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
     });
 
     client.emit('kafka-status', this.kafkaService.getStatus());
+    client.emit('anomaly-status', this.anomalyService.getStatus());
   }
 
   handleDisconnect(client: Socket): void {
@@ -74,5 +89,10 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
   @SubscribeMessage('get-kafka-status')
   handleGetKafkaStatus(client: Socket): void {
     client.emit('kafka-status', this.kafkaService.getStatus());
+  }
+
+  @SubscribeMessage('get-anomaly-status')
+  handleGetAnomalyStatus(client: Socket): void {
+    client.emit('anomaly-status', this.anomalyService.getStatus());
   }
 }

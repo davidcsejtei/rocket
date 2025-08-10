@@ -71,9 +71,13 @@
       <div class="status-panels">
         <ConnectionStatus />
         <KafkaStatus />
+        <AnomalyAlerts />
       </div>
       
-      <TelemetryMessages />
+      <div class="data-panels">
+        <TelemetryMessages />
+        <AnomalyHistory />
+      </div>
     </div>
   </div>
 </template>
@@ -82,6 +86,8 @@
 import ConnectionStatus from './ConnectionStatus.vue';
 import KafkaStatus from './KafkaStatus.vue';
 import TelemetryMessages from './TelemetryMessages.vue';
+import AnomalyAlerts from './AnomalyAlerts.vue';
+import AnomalyHistory from './AnomalyHistory.vue';
 </script>
 
 <style scoped>
@@ -102,6 +108,13 @@ import TelemetryMessages from './TelemetryMessages.vue';
 }
 
 .status-panels {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.data-panels {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
@@ -182,7 +195,8 @@ import TelemetryMessages from './TelemetryMessages.vue';
     gap: 16px;
   }
   
-  .status-panels {
+  .status-panels,
+  .data-panels {
     flex-direction: column;
     gap: 12px;
   }

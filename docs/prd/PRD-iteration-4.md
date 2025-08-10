@@ -150,17 +150,42 @@ Existing Components      New Components
 **High Priority** - Critical for mission safety monitoring and establishes real-time anomaly detection capabilities.
 
 ## Dependencies
-- Apache Flink cluster (local or distributed)
-- Python 3.8+ with PyFlink library
+- Docker and Docker Compose for containerized deployment
+- Apache Flink cluster (deployed via Docker Compose)
+- Python 3.8+ with PyFlink library (containerized)
 - Existing Kafka infrastructure
 - Existing WebSocket and telemetry infrastructure
 
+## Docker Deployment Architecture
+```
+Docker Compose Stack
+┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│ Flink JobManager│   │ Flink TaskManager│   │ PyFlink Job     │
+│ (Coordinator)   │   │ (Worker)        │   │ Container       │
+└─────────────────┘   └─────────────────┘   └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                         ┌─────────────────┐
+                         │ Kafka Cluster   │
+                         │ (External)      │
+                         └─────────────────┘
+```
+
+### Container Configuration
+- **Flink JobManager**: Cluster coordinator and web UI
+- **Flink TaskManager**: Worker nodes for job execution
+- **PyFlink Job Container**: Runs the anomaly detection job
+- **Shared Network**: Internal Docker network for service communication
+- **Volume Mounts**: Job code and configuration persistence
+
 ## Timeline
 - PyFlink job development and testing: 3 days
+- Docker Compose and containerization: 1 day
 - Backend anomaly service integration: 2 days
 - Frontend anomaly display components: 2 days
 - Integration testing and deployment: 1 day
-- Total estimated effort: 8 days
+- Total estimated effort: 9 days
 
 ## Risks and Mitigations
 - **PyFlink job failure**: Implement job restart mechanisms and health monitoring

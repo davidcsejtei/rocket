@@ -128,9 +128,24 @@ npm run dev
 
 The frontend will start on `http://localhost:5173`
 
-### 4. Test the System
+### 4. Start PyFlink Anomaly Detection (Terminal 6)
 
-#### Send Test Telemetry Data (Terminal 6):
+```bash
+# Navigate to PyFlink directory
+cd pyflink-anomaly-detector
+
+# Start Flink cluster and anomaly detection job with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f pyflink-anomaly-detector
+```
+
+The Flink Web UI will be available at `http://localhost:8081`
+
+### 5. Test the System
+
+#### Send Test Telemetry Data (Terminal 7):
 ```bash
 # Send a test message to Kafka
 kafka-console-producer --topic rocket-telemetry --bootstrap-server localhost:9092
@@ -142,6 +157,25 @@ Then paste this JSON message:
 ```
 
 Press Enter to send the message. You should see it appear in the UI immediately with comprehensive telemetry data.
+
+#### Test Anomaly Detection (Terminal 7):
+
+Send a message with anomalous values to trigger alerts:
+```json
+{"timestamp":"2025-08-10T14:23:45.123Z","rocketId":"Falcon-9-001","missionTime":45.2,"stage":1,"status":"ascent","altitude":12540.7,"velocity":1847.3,"acceleration":18.45,"machNumber":5.38,"pitch":67.2,"yaw":-1.8,"roll":0.4,"fuelRemaining":78.3,"fuelMass":321630,"thrust":0,"burnRate":2600.0,"engineEfficiency":50.0,"engineTemp":3500,"airDensity":0.524391,"dragForce":47892,"totalMass":343830,"thrustToWeight":2.26,"apogee":186420,"sensorNoise":2.0,"guidanceError":3.0,"fuelLeakRate":100.0,"activeAnomalies":3}
+```
+
+This message contains multiple anomalies:
+- `thrust`: 0 (engine shutdown)
+- `burnRate`: 2600.0 (fuel leak)
+- `engineEfficiency`: 50.0 (underperformance)
+- `engineTemp`: 3500 (thermal anomaly)
+- `sensorNoise`: 2.0 (sensor malfunction)
+- `guidanceError`: 3.0 (guidance failure)
+- `fuelLeakRate`: 100.0 (fuel leak rate)
+- `activeAnomalies`: 3 (multiple concurrent issues)
+
+You should see these anomalies appear in the System Alerts panel with appropriate severity levels.
 
 ## Environment Variables
 

@@ -2,6 +2,7 @@ import { ref, reactive } from 'vue';
 import { io, Socket } from 'socket.io-client';
 import type { ConnectionState, ConnectionStatus, ServerMessage } from '@/types/websocket.types';
 import type { TelemetryMessage, KafkaStatus } from '@/types/telemetry.types';
+import type { AnomalyAlert, AnomalyStatus } from '@/types/anomaly.types';
 
 class WebSocketService {
   private socket: Socket | null = null;
@@ -20,6 +21,16 @@ class WebSocketService {
 
   public telemetryMessages = ref<TelemetryMessage[]>([]);
   private readonly maxMessages = 15;
+
+  public anomalyStatus = reactive<AnomalyStatus>({
+    state: 'disconnected',
+    anomaliesReceived: 0,
+  });
+
+  public recentAnomalies = ref<AnomalyAlert[]>([]);
+  public allAnomalies = ref<AnomalyAlert[]>([]);
+  private readonly maxRecentAnomalies = 10;
+  private readonly maxAllAnomalies = 50;
 
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 1000;
@@ -78,6 +89,7 @@ class WebSocketService {
       this.updateConnectionState('disconnected');
       this.connectionStatus.disconnectedAt = new Date();
       this.kafkaStatus.state = 'disconnected';
+      this.anomalyStatus.state = 'disconnected';
       
       if (reason === 'io server disconnect') {
         this.connectionStatus.lastError = 'Server disconnected';
@@ -91,6 +103,8 @@ class WebSocketService {
       this.connectionStatus.lastError = error.message;
       this.kafkaStatus.state = 'error';
       this.kafkaStatus.lastError = 'API connection failed';
+      this.anomalyStatus.state = 'error';
+      this.anomalyStatus.lastError = 'API connection failed';
       this.attemptReconnection();
     });
 
@@ -113,6 +127,19 @@ class WebSocketService {
     this.socket.on('kafka-error', (error: { message: string }) => {
       this.kafkaStatus.state = 'error';
       this.kafkaStatus.lastError = error.message;
+    });
+
+    this.socket.on('anomaly-status', (status: AnomalyStatus) => {
+      Object.assign(this.anomalyStatus, status);
+    });
+
+    this.socket.on('anomaly-alert', (alert: AnomalyAlert) => {
+      this.addAnomalyAlert(alert);
+    });
+
+    this.socket.on('anomaly-error', (error: { message: string }) => {
+      this.anomalyStatus.state = 'error';
+      this.anomalyStatus.lastError = error.message;
     });
   }
 
@@ -183,6 +210,26 @@ class WebSocketService {
   requestKafkaStatus(): void {
     if (this.socket?.connected) {
       this.socket.emit('get-kafka-status');
+    }
+  }
+
+  private addAnomalyAlert(alert: AnomalyAlert): void {
+    // Add to recent anomalies (newest first)
+    this.recentAnomalies.value.unshift(alert);
+    if (this.recentAnomalies.value.length > this.maxRecentAnomalies) {
+      this.recentAnomalies.value = this.recentAnomalies.value.slice(0, this.maxRecentAnomalies);
+    }
+
+    // Add to all anomalies (newest first)
+    this.allAnomalies.value.unshift(alert);
+    if (this.allAnomalies.value.length > this.maxAllAnomalies) {
+      this.allAnomalies.value = this.allAnomalies.value.slice(0, this.maxAllAnomalies);
+    }
+  }
+
+  requestAnomalyStatus(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('get-anomaly-status');
     }
   }
 }
