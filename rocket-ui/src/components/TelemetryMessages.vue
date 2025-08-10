@@ -31,11 +31,11 @@
           </div>
           <div class="data-row">
             <span class="data-label">Fuel:</span>
-            <span class="data-value">{{ Math.round(message.fuel) }}%</span>
+            <span class="data-value">{{ Math.round(message.fuelRemaining) }}%</span>
           </div>
           <div class="data-row">
             <span class="data-label">Temp:</span>
-            <span class="data-value">{{ Math.round(message.temperature) }}°C</span>
+            <span class="data-value">{{ Math.round(message.engineTemp) }}°C</span>
           </div>
         </div>
         
