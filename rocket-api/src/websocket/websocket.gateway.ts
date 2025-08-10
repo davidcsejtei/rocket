@@ -35,6 +35,12 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
       this.server.emit('telemetry-data', message);
     });
 
+    this.kafkaService.onAnomalyMessage((anomaly: AnomalyAlert) => {
+      this.logger.log(`Broadcasting anomaly alert from Kafka: ${anomaly.anomalyType} (${anomaly.severity})`);
+      this.server.emit('anomaly-alert', anomaly);
+      this.anomalyService.processAnomalyAlert(anomaly);
+    });
+
     this.kafkaService.onStatusChange((status: KafkaStatus) => {
       this.server.emit('kafka-status', status);
     });

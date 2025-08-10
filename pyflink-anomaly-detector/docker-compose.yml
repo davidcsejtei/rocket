@@ -7,10 +7,10 @@ services:
     hostname: flink-jobmanager
     container_name: flink-jobmanager
     ports:
-      - "8082:8081"
+      - '8082:8081'
     command: jobmanager
     environment:
-      FLINK_PROPERTIES: "jobmanager.rpc.address: flink-jobmanager"
+      FLINK_PROPERTIES: 'jobmanager.rpc.address: flink-jobmanager'
     volumes:
       - flink-checkpoints:/tmp/flink-checkpoints
       - flink-savepoints:/tmp/flink-savepoints
@@ -41,15 +41,13 @@ services:
       - flink-jobmanager
       - flink-taskmanager
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - FLINK_JOBMANAGER_ADDRESS=flink-jobmanager:8081
     volumes:
       - ./:/app
     networks:
       - flink-network
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   flink-checkpoints:
@@ -57,4 +55,4 @@ volumes:
 
 networks:
   flink-network:
-    driver: bridge
+    external: true

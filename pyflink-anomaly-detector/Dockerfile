@@ -34,7 +34,7 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 # Set environment variables
-ENV KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 ENV PYTHONUNBUFFERED=1
 
 # Run the job
