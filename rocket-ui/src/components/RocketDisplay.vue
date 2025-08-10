@@ -1,5 +1,14 @@
 <template>
   <div class="rocket-container">
+    <!-- Celebration Popup -->
+    <CelebrationPopup
+      v-if="websocketService.celebrationData.value"
+      :visible="websocketService.celebrationData.value.visible"
+      :final-altitude="websocketService.celebrationData.value.finalAltitude"
+      :rocket-id="websocketService.celebrationData.value.rocketId"
+      :mission-time="websocketService.celebrationData.value.missionTime"
+      @dismiss="websocketService.dismissCelebration()"
+    />
     <div class="rocket-content">
       <svg
         class="rocket-svg"
@@ -88,6 +97,8 @@ import KafkaStatus from './KafkaStatus.vue';
 import TelemetryMessages from './TelemetryMessages.vue';
 import AnomalyAlerts from './AnomalyAlerts.vue';
 import AnomalyHistory from './AnomalyHistory.vue';
+import CelebrationPopup from './CelebrationPopup.vue';
+import { websocketService } from '@/services/websocket.service';
 </script>
 
 <style scoped>

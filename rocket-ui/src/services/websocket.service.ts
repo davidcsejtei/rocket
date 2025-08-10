@@ -32,6 +32,18 @@ class WebSocketService {
   private readonly maxRecentAnomalies = 10;
   private readonly maxAllAnomalies = 50;
 
+  // Celebration state management
+  public celebrationData = ref<{
+    visible: boolean;
+    finalAltitude: number;
+    rocketId: string;
+    missionTime: number;
+  } | null>(null);
+  
+  private readonly targetAltitude = 101445; // 101,445m
+  private celebratedRockets = new Set<string>();
+  private lastProcessedAltitude = new Map<string, number>();
+
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 1000;
   private readonly heartbeatInterval_ms = 30000;
@@ -205,6 +217,59 @@ class WebSocketService {
     if (this.telemetryMessages.value.length > this.maxMessages) {
       this.telemetryMessages.value = this.telemetryMessages.value.slice(0, this.maxMessages);
     }
+
+    // Check for celebration trigger
+    this.checkForCelebration(message);
+  }
+
+  private checkForCelebration(message: TelemetryMessage): void {
+    const rocketKey = message.rocketId;
+    const currentAltitude = message.altitude;
+    const lastAltitude = this.lastProcessedAltitude.get(rocketKey) || 0;
+
+    // Update last processed altitude
+    this.lastProcessedAltitude.set(rocketKey, currentAltitude);
+
+    // Check if this rocket has already celebrated
+    if (this.celebratedRockets.has(rocketKey)) {
+      return;
+    }
+
+    // Check if we've reached the target altitude
+    if (currentAltitude >= this.targetAltitude && lastAltitude < this.targetAltitude) {
+      this.triggerCelebration(message);
+    }
+  }
+
+  private triggerCelebration(message: TelemetryMessage): void {
+    // Mark this rocket as celebrated
+    this.celebratedRockets.add(message.rocketId);
+
+    // Show celebration popup
+    this.celebrationData.value = {
+      visible: true,
+      finalAltitude: message.altitude,
+      rocketId: message.rocketId,
+      missionTime: message.missionTime,
+    };
+
+    console.log(`🎉 Mission Success! Rocket ${message.rocketId} reached ${message.altitude.toLocaleString()}m at mission time ${message.missionTime}s`);
+  }
+
+  public dismissCelebration(): void {
+    if (this.celebrationData.value) {
+      this.celebrationData.value.visible = false;
+      // Clear celebration data after animation completes
+      setTimeout(() => {
+        this.celebrationData.value = null;
+      }, 500);
+    }
+  }
+
+  public resetCelebrationState(): void {
+    this.celebratedRockets.clear();
+    this.lastProcessedAltitude.clear();
+    this.celebrationData.value = null;
   }
 
   requestKafkaStatus(): void {

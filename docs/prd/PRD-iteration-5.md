@@ -185,3 +185,4 @@ Add a celebration popup feature that triggers when the rocket reaches the final 
 - Social sharing of mission success
 - Celebration statistics and history
 - Audio celebration effects
+- Reset celebration functionality for testing
