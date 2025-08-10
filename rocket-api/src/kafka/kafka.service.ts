@@ -109,11 +109,31 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       data &&
       typeof data.timestamp === 'string' &&
       typeof data.rocketId === 'string' &&
+      typeof data.missionTime === 'number' &&
+      typeof data.stage === 'number' &&
+      ['prelaunch', 'ascent', 'coasting', 'descent', 'landed', 'abort'].includes(data.status) &&
       typeof data.altitude === 'number' &&
       typeof data.velocity === 'number' &&
-      typeof data.fuel === 'number' &&
-      typeof data.temperature === 'number' &&
-      ['launching', 'flight', 'landing', 'landed'].includes(data.status)
+      typeof data.acceleration === 'number' &&
+      typeof data.machNumber === 'number' &&
+      typeof data.pitch === 'number' &&
+      typeof data.yaw === 'number' &&
+      typeof data.roll === 'number' &&
+      typeof data.fuelRemaining === 'number' &&
+      typeof data.fuelMass === 'number' &&
+      typeof data.thrust === 'number' &&
+      typeof data.burnRate === 'number' &&
+      typeof data.engineEfficiency === 'number' &&
+      typeof data.engineTemp === 'number' &&
+      typeof data.airDensity === 'number' &&
+      typeof data.dragForce === 'number' &&
+      typeof data.totalMass === 'number' &&
+      typeof data.thrustToWeight === 'number' &&
+      typeof data.apogee === 'number' &&
+      typeof data.sensorNoise === 'number' &&
+      typeof data.guidanceError === 'number' &&
+      typeof data.fuelLeakRate === 'number' &&
+      typeof data.activeAnomalies === 'number'
     );
   }
 

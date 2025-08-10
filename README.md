@@ -138,10 +138,10 @@ kafka-console-producer --topic rocket-telemetry --bootstrap-server localhost:909
 
 Then paste this JSON message:
 ```json
-{"timestamp":"2025-01-10T14:30:00.000Z","rocketId":"ROCKET-001","altitude":15000,"velocity":350,"fuel":85,"temperature":25,"status":"flight"}
+{"timestamp":"2025-08-10T14:23:45.123Z","rocketId":"Falcon-9-001","missionTime":45.2,"stage":1,"status":"ascent","altitude":12540.7,"velocity":1847.3,"acceleration":18.45,"machNumber":5.38,"pitch":67.2,"yaw":-1.8,"roll":0.4,"fuelRemaining":78.3,"fuelMass":321630,"thrust":7607000,"burnRate":2500.0,"engineEfficiency":100.0,"engineTemp":3182,"airDensity":0.524391,"dragForce":47892,"totalMass":343830,"thrustToWeight":2.26,"apogee":186420,"sensorNoise":1.0,"guidanceError":0.0,"fuelLeakRate":0.0,"activeAnomalies":0}
 ```
 
-Press Enter to send the message. You should see it appear in the UI immediately.
+Press Enter to send the message. You should see it appear in the UI immediately with comprehensive telemetry data.
 
 ## Environment Variables
 
@@ -195,19 +195,53 @@ rocket/
 
 ## Telemetry Data Format
 
-The system expects Kafka messages in the following JSON format:
+The system expects Kafka messages in the following comprehensive JSON format:
 
 ```json
 {
-  "timestamp": "2025-01-10T14:30:00.000Z",
-  "rocketId": "ROCKET-001",
-  "altitude": 15000,
-  "velocity": 350,
-  "fuel": 85,
-  "temperature": 25,
-  "status": "launching" | "flight" | "landing" | "landed"
+  "timestamp": "2025-08-10T14:23:45.123Z",
+  "rocketId": "Falcon-9-001",
+  "missionTime": 45.2,
+  "stage": 1,
+  "status": "ascent",
+
+  "altitude": 12540.7,
+  "velocity": 1847.3,
+  "acceleration": 18.45,
+  "machNumber": 5.38,
+
+  "pitch": 67.2,
+  "yaw": -1.8,
+  "roll": 0.4,
+
+  "fuelRemaining": 78.3,
+  "fuelMass": 321630,
+  "thrust": 7607000,
+  "burnRate": 2500.0,
+  "engineEfficiency": 100.0,
+
+  "engineTemp": 3182,
+  "airDensity": 0.524391,
+  "dragForce": 47892,
+
+  "totalMass": 343830,
+  "thrustToWeight": 2.26,
+  "apogee": 186420,
+
+  "sensorNoise": 1.0,
+  "guidanceError": 0.0,
+  "fuelLeakRate": 0.0,
+  "activeAnomalies": 0
 }
 ```
+
+### Status Values
+- `prelaunch` - Pre-flight preparations
+- `ascent` - Powered ascent phase
+- `coasting` - Unpowered flight phase
+- `descent` - Descent phase
+- `landed` - Successfully landed
+- `abort` - Mission abort scenario
 
 ## Connection Status Indicators
 

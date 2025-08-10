@@ -28,13 +28,46 @@ Connect the NestJS backend to a Kafka broker to consume rocket telemetry data fr
 2. **Telemetry Data Structure**
    ```typescript
    interface TelemetryMessage {
+     // Core identification and timing
      timestamp: string;
      rocketId: string;
+     missionTime: number;
+     stage: number;
+     status: 'prelaunch' | 'ascent' | 'coasting' | 'descent' | 'landed' | 'abort';
+
+     // Flight dynamics
      altitude: number;
      velocity: number;
-     fuel: number;
-     temperature: number;
-     status: 'launching' | 'flight' | 'landing' | 'landed';
+     acceleration: number;
+     machNumber: number;
+
+     // Orientation
+     pitch: number;
+     yaw: number;
+     roll: number;
+
+     // Propulsion system
+     fuelRemaining: number;
+     fuelMass: number;
+     thrust: number;
+     burnRate: number;
+     engineEfficiency: number;
+
+     // Environmental and forces
+     engineTemp: number;
+     airDensity: number;
+     dragForce: number;
+
+     // Calculated metrics
+     totalMass: number;
+     thrustToWeight: number;
+     apogee: number;
+
+     // System health and anomalies
+     sensorNoise: number;
+     guidanceError: number;
+     fuelLeakRate: number;
+     activeAnomalies: number;
    }
    ```
 
@@ -52,11 +85,18 @@ Connect the NestJS backend to a Kafka broker to consume rocket telemetry data fr
    - **Error**: Red indicator with "Kafka Error" and error details
 
 5. **Telemetry Message Display**
-   - Compact message cards showing key telemetry data
-   - Color-coded status indicators based on rocket status
-   - Timestamp display in readable format
-   - Auto-scroll to newest messages
+   - Comprehensive message cards displaying enhanced telemetry data organized in logical groups:
+     - **Flight Status**: Mission time, stage, status, altitude, velocity
+     - **Propulsion**: Fuel remaining, thrust, engine efficiency, burn rate
+     - **Orientation**: Pitch, yaw, roll angles
+     - **Performance**: Mach number, thrust-to-weight ratio, apogee
+     - **Health**: Active anomalies, sensor noise, guidance error
+   - Color-coded status indicators based on rocket status (prelaunch, ascent, coasting, descent, landed, abort)
+   - Expandable/collapsible sections for detailed vs. summary view
+   - Timestamp and mission time display in readable format
+   - Auto-scroll to newest messages with smooth animations
    - Empty state when no messages received
+   - Anomaly alerts highlighted in red when activeAnomalies > 0
 
 6. **Technical Requirements**
    - Service-based architecture for Kafka management
