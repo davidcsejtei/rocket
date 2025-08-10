@@ -79,6 +79,7 @@
 - ✅ Do use Vite to create new frontend projects.
 - ✅ Do create new frontend projects in a dedicated folder.
 - ✅ Do create new backend API projects in a dedicated folder.
+- ✅ Do use the docs/prd folder to create or maintain PRD files.
 - ❌ Do not write comments or JSDoc in any code.
 - ❌ Do not put business logic in controllers, components, routes, or stores.
 - ❌ Do not hardcode secrets or environment‑dependent values in the codebase.
