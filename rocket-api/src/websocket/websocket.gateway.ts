@@ -4,9 +4,12 @@ import {
   OnGatewayDisconnect,
   WebSocketServer,
   SubscribeMessage,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, Inject } from '@nestjs/common';
+import { KafkaService } from '../kafka/kafka.service';
+import { TelemetryMessage, KafkaStatus } from '../types/telemetry.types';
 
 @WebSocketGateway({
   cors: {
@@ -16,9 +19,27 @@ import { Logger } from '@nestjs/common';
   },
   transports: ['websocket', 'polling'],
 })
-export class WebSocketGatewayService implements OnGatewayConnection, OnGatewayDisconnect {
+export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('WebSocketGateway');
+
+  constructor(private readonly kafkaService: KafkaService) {}
+
+  afterInit(): void {
+    this.kafkaService.onTelemetryMessage((message: TelemetryMessage) => {
+      this.server.emit('telemetry-data', message);
+    });
+
+    this.kafkaService.onStatusChange((status: KafkaStatus) => {
+      this.server.emit('kafka-status', status);
+    });
+
+    setInterval(() => {
+      this.server.emit('kafka-status', this.kafkaService.getStatus());
+    }, 5000);
+
+    this.logger.log('WebSocket Gateway initialized with Kafka integration');
+  }
 
   handleConnection(client: Socket): void {
     this.logger.log(`Client connected: ${client.id}`);
@@ -26,6 +47,8 @@ export class WebSocketGatewayService implements OnGatewayConnection, OnGatewayDi
       clientId: client.id,
       timestamp: new Date().toISOString(),
     });
+
+    client.emit('kafka-status', this.kafkaService.getStatus());
   }
 
   handleDisconnect(client: Socket): void {
@@ -46,5 +69,10 @@ export class WebSocketGatewayService implements OnGatewayConnection, OnGatewayDi
       serverTime: new Date().toISOString(),
       clientId: client.id,
     });
+  }
+
+  @SubscribeMessage('get-kafka-status')
+  handleGetKafkaStatus(client: Socket): void {
+    client.emit('kafka-status', this.kafkaService.getStatus());
   }
 }

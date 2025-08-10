@@ -68,13 +68,20 @@
         </defs>
       </svg>
       
-      <ConnectionStatus />
+      <div class="status-panels">
+        <ConnectionStatus />
+        <KafkaStatus />
+      </div>
+      
+      <TelemetryMessages />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import ConnectionStatus from './ConnectionStatus.vue';
+import KafkaStatus from './KafkaStatus.vue';
+import TelemetryMessages from './TelemetryMessages.vue';
 </script>
 
 <style scoped>
@@ -91,6 +98,14 @@ import ConnectionStatus from './ConnectionStatus.vue';
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 24px;
+}
+
+.status-panels {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .rocket-svg {
@@ -161,6 +176,15 @@ import ConnectionStatus from './ConnectionStatus.vue';
   .rocket-svg {
     width: 120px;
     height: 240px;
+  }
+  
+  .rocket-content {
+    gap: 16px;
+  }
+  
+  .status-panels {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>

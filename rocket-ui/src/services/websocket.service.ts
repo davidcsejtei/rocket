@@ -1,6 +1,7 @@
 import { ref, reactive } from 'vue';
 import { io, Socket } from 'socket.io-client';
 import type { ConnectionState, ConnectionStatus, ServerMessage } from '@/types/websocket.types';
+import type { TelemetryMessage, KafkaStatus } from '@/types/telemetry.types';
 
 class WebSocketService {
   private socket: Socket | null = null;
@@ -11,6 +12,14 @@ class WebSocketService {
     state: 'disconnected',
     reconnectAttempts: 0,
   });
+
+  public kafkaStatus = reactive<KafkaStatus>({
+    state: 'disconnected',
+    messagesReceived: 0,
+  });
+
+  public telemetryMessages = ref<TelemetryMessage[]>([]);
+  private readonly maxMessages = 15;
 
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 1000;
@@ -62,11 +71,13 @@ class WebSocketService {
       this.connectionStatus.connectedAt = new Date();
       this.connectionStatus.reconnectAttempts = 0;
       this.startHeartbeat();
+      this.requestKafkaStatus();
     });
 
     this.socket.on('disconnect', (reason: string) => {
       this.updateConnectionState('disconnected');
       this.connectionStatus.disconnectedAt = new Date();
+      this.kafkaStatus.state = 'disconnected';
       
       if (reason === 'io server disconnect') {
         this.connectionStatus.lastError = 'Server disconnected';
@@ -78,6 +89,8 @@ class WebSocketService {
     this.socket.on('connect_error', (error: Error) => {
       this.updateConnectionState('error');
       this.connectionStatus.lastError = error.message;
+      this.kafkaStatus.state = 'error';
+      this.kafkaStatus.lastError = 'API connection failed';
       this.attemptReconnection();
     });
 
@@ -87,6 +100,19 @@ class WebSocketService {
 
     this.socket.on('pong', (data: ServerMessage) => {
       console.log('Heartbeat received:', data);
+    });
+
+    this.socket.on('kafka-status', (status: KafkaStatus) => {
+      Object.assign(this.kafkaStatus, status);
+    });
+
+    this.socket.on('telemetry-data', (message: TelemetryMessage) => {
+      this.addTelemetryMessage(message);
+    });
+
+    this.socket.on('kafka-error', (error: { message: string }) => {
+      this.kafkaStatus.state = 'error';
+      this.kafkaStatus.lastError = error.message;
     });
   }
 
@@ -144,6 +170,20 @@ class WebSocketService {
     const remainingSeconds = seconds % 60;
     
     return `${minutes}m ${remainingSeconds}s`;
+  }
+
+  private addTelemetryMessage(message: TelemetryMessage): void {
+    this.telemetryMessages.value.unshift(message);
+    
+    if (this.telemetryMessages.value.length > this.maxMessages) {
+      this.telemetryMessages.value = this.telemetryMessages.value.slice(0, this.maxMessages);
+    }
+  }
+
+  requestKafkaStatus(): void {
+    if (this.socket?.connected) {
+      this.socket.emit('get-kafka-status');
+    }
   }
 }
 
