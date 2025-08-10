@@ -81,6 +81,7 @@
         <ConnectionStatus />
         <KafkaStatus />
         <AnomalyAlerts />
+        <MissionControls />
       </div>
       
       <div class="data-panels">
@@ -98,6 +99,7 @@ import TelemetryMessages from './TelemetryMessages.vue';
 import AnomalyAlerts from './AnomalyAlerts.vue';
 import AnomalyHistory from './AnomalyHistory.vue';
 import CelebrationPopup from './CelebrationPopup.vue';
+import MissionControls from './MissionControls.vue';
 import { websocketService } from '@/services/websocket.service';
 </script>
 

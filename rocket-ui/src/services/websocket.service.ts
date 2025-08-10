@@ -272,6 +272,36 @@ class WebSocketService {
     this.celebrationData.value = null;
   }
 
+  public resetTelemetryData(): void {
+    // Clear telemetry messages
+    this.telemetryMessages.value = [];
+    
+    // Reset Kafka status message count
+    this.kafkaStatus.messagesReceived = 0;
+    
+    // Reset celebration state (allow new celebrations)
+    this.resetCelebrationState();
+    
+    console.log('Telemetry data reset completed');
+  }
+
+  public resetAnomalyData(): void {
+    // Clear anomaly alerts
+    this.recentAnomalies.value = [];
+    this.allAnomalies.value = [];
+    
+    // Reset anomaly status
+    this.anomalyStatus.anomaliesReceived = 0;
+    
+    console.log('Anomaly data reset completed');
+  }
+
+  public resetAllData(): void {
+    this.resetTelemetryData();
+    this.resetAnomalyData();
+    console.log('All data reset completed');
+  }
+
   requestKafkaStatus(): void {
     if (this.socket?.connected) {
       this.socket.emit('get-kafka-status');
