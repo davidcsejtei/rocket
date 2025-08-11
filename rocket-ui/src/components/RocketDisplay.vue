@@ -107,38 +107,48 @@ import { websocketService } from '@/services/websocket.service';
 .rocket-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  align-items: flex-start;
+  height: 100vh;
+  width: 100vw;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 20px;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .rocket-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
+  width: 100%;
+  max-width: 1400px;
+  padding-top: 20px;
 }
 
 .status-panels {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
 .data-panels {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .rocket-svg {
-  width: 200px;
-  height: 400px;
-  max-width: 50vw;
-  max-height: 70vh;
+  width: 180px;
+  height: 320px;
+  max-width: 25vw;
+  max-height: 40vh;
+  flex-shrink: 0;
 }
 
 .flames {
@@ -192,26 +202,47 @@ import { websocketService } from '@/services/websocket.service';
 }
 
 @media (max-width: 768px) {
+  .rocket-container {
+    padding: 8px;
+  }
+  
+  .rocket-content {
+    padding-top: 10px;
+    gap: 12px;
+  }
+  
   .rocket-svg {
-    width: 150px;
-    height: 300px;
+    width: 120px;
+    height: 240px;
+    max-width: 30vw;
+    max-height: 25vh;
+  }
+  
+  .status-panels,
+  .data-panels {
+    gap: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .rocket-svg {
-    width: 120px;
-    height: 240px;
+  .rocket-container {
+    padding: 5px;
   }
   
   .rocket-content {
-    gap: 16px;
+    padding-top: 5px;
+    gap: 8px;
+  }
+  
+  .rocket-svg {
+    width: 100px;
+    height: 200px;
   }
   
   .status-panels,
   .data-panels {
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
   }
 }
 </style>

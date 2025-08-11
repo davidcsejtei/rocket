@@ -138,7 +138,8 @@ const handleConfirmation = async () => {
 
 const resetTelemetryData = async () => {
   try {
-    const response = await fetch('/api/admin/reset-telemetry', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${apiBaseUrl}/api/admin/reset-telemetry`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -177,7 +178,8 @@ const resetTelemetryData = async () => {
 
 const resetAnomalyData = async () => {
   try {
-    const response = await fetch('/api/admin/reset-anomalies', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${apiBaseUrl}/api/admin/reset-anomalies`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -5,35 +5,22 @@
         <div class="warning-icon">⚠️</div>
         <h3 class="dialog-title">{{ title }}</h3>
       </div>
-      
+
       <div class="dialog-content">
         <p class="warning-message">{{ message }}</p>
-        
+
         <div v-if="details.length > 0" class="warning-details">
           <ul>
             <li v-for="detail in details" :key="detail">{{ detail }}</li>
           </ul>
         </div>
-        
-        <div class="data-warning">
-          <strong>⚠️ Warning:</strong> This action cannot be undone!
-        </div>
+
+        <div class="data-warning"><strong>⚠️ Warning:</strong> This action cannot be undone!</div>
       </div>
-      
+
       <div class="dialog-actions">
-        <button 
-          class="cancel-button"
-          @click="cancel"
-          :disabled="loading"
-        >
-          Cancel
-        </button>
-        <button 
-          class="confirm-button"
-          @click="confirm"
-          :disabled="loading"
-          :class="{ loading }"
-        >
+        <button class="cancel-button" @click="cancel" :disabled="loading">Cancel</button>
+        <button class="confirm-button" @click="confirm" :disabled="loading" :class="{ loading }">
           <span v-if="loading" class="loading-spinner"></span>
           {{ loading ? 'Processing...' : confirmText }}
         </button>
@@ -85,7 +72,7 @@ const handleOverlayClick = () => {
 
 const handleKeyPress = (event: KeyboardEvent) => {
   if (!props.visible) return
-  
+
   if (event.key === 'Escape' && !props.loading) {
     emit('cancel')
   } else if (event.key === 'Enter' && !props.loading) {
@@ -104,7 +91,7 @@ onUnmounted(() => {
 
 <style scoped>
 .confirmation-overlay {
-  position: fixed;
+  /* position: absolute; */
   top: 0;
   left: 0;
   right: 0;
@@ -260,8 +247,12 @@ onUnmounted(() => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
@@ -276,8 +267,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {
@@ -285,25 +280,25 @@ onUnmounted(() => {
     margin: 1rem;
     width: calc(100% - 2rem);
   }
-  
+
   .dialog-header {
     padding: 1rem;
   }
-  
+
   .dialog-title {
     font-size: 1.1rem;
   }
-  
+
   .dialog-content {
     padding: 1rem;
   }
-  
+
   .dialog-actions {
     padding: 1rem;
     flex-direction: column;
     gap: 0.8rem;
   }
-  
+
   .cancel-button,
   .confirm-button {
     width: 100%;

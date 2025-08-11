@@ -3,7 +3,7 @@ export interface TelemetryMessage {
   rocketId: string;
   missionTime: number;
   stage: number;
-  status: 'prelaunch' | 'ascent' | 'coasting' | 'descent' | 'landed' | 'abort';
+  status: 'prelaunch' | 'ignition' | 'liftoff' | 'ascent' | 'coasting' | 'descent' | 'landed' | 'abort';
 
   altitude: number;
   velocity: number;

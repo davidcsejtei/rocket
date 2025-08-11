@@ -154,7 +154,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       typeof data.rocketId === 'string' &&
       typeof data.missionTime === 'number' &&
       typeof data.stage === 'number' &&
-      ['prelaunch', 'ascent', 'coasting', 'descent', 'landed', 'abort'].includes(data.status) &&
+      ['prelaunch', 'ignition', 'liftoff', 'ascent', 'coasting', 'descent', 'landed', 'abort'].includes(data.status) &&
       typeof data.altitude === 'number' &&
       typeof data.velocity === 'number' &&
       typeof data.acceleration === 'number' &&

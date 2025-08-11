@@ -4,12 +4,12 @@
       <h3>Live Telemetry</h3>
       <span v-if="messages.length > 0" class="message-count">{{ messages.length }} messages</span>
     </div>
-    
+
     <div class="messages-container" ref="messagesContainer">
       <div v-if="messages.length === 0" class="empty-state">
         <span>No telemetry data received yet</span>
       </div>
-      
+
       <div
         v-for="message in messages"
         :key="`${message.rocketId}-${message.timestamp}`"
@@ -19,7 +19,7 @@
           <span class="rocket-id">{{ message.rocketId }}</span>
           <span class="timestamp">{{ formatTime(message.timestamp) }}</span>
         </div>
-        
+
         <div class="telemetry-data">
           <div class="data-row">
             <span class="data-label">Altitude:</span>
@@ -38,7 +38,7 @@
             <span class="data-value">{{ Math.round(message.engineTemp) }}°C</span>
           </div>
         </div>
-        
+
         <div class="status-badge">
           <span :class="['status-text', `status-${message.status}`]">
             {{ formatStatus(message.status) }}
@@ -50,12 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue';
-import { websocketService } from '@/services/websocket.service';
-import type { TelemetryMessage } from '@/types/telemetry.types';
+import { ref, nextTick, watch } from 'vue'
+import { websocketService } from '@/services/websocket.service'
+import type { TelemetryMessage } from '@/types/telemetry.types'
 
-const messages = websocketService.telemetryMessages;
-const messagesContainer = ref<HTMLElement>();
+const messages = websocketService.telemetryMessages
+const messagesContainer = ref<HTMLElement>()
 
 const formatTime = (timestamp: string): string => {
   try {
@@ -63,33 +63,33 @@ const formatTime = (timestamp: string): string => {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
-    });
+      second: '2-digit',
+    })
   } catch {
-    return 'Invalid time';
+    return 'Invalid time'
   }
-};
+}
 
 const formatNumber = (value: number): string => {
   return value.toLocaleString('en-US', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 1
-  });
-};
+    maximumFractionDigits: 1,
+  })
+}
 
 const formatStatus = (status: string): string => {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-};
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
 
 watch(
   () => messages.length,
   async () => {
-    await nextTick();
+    await nextTick()
     if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = 0;
+      messagesContainer.value.scrollTop = 0
     }
-  }
-);
+  },
+)
 </script>
 
 <style scoped>
@@ -278,16 +278,16 @@ watch(
     min-width: 280px;
     padding: 14px 16px;
   }
-  
+
   .panel-header h3 {
     font-size: 15px;
   }
-  
+
   .telemetry-data {
     grid-template-columns: 1fr;
     gap: 2px;
   }
-  
+
   .data-row {
     justify-content: space-between;
   }
