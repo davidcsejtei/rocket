@@ -8,7 +8,7 @@
       <div class="celebration-content">
         <div class="celebration-header">
           <h1 class="celebration-title">🚀 MISSION SUCCESS! 🎉</h1>
-          <p class="achievement-message">Rocket has reached the target altitude!</p>
+          <p class="achievement-message">Rocket has reached 100km altitude - The Kármán Line!</p>
         </div>
         
         <div class="mission-details">
@@ -26,7 +26,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Achievement:</span>
-            <span class="detail-value success">Target Reached! 🎯</span>
+            <span class="detail-value success">Space Boundary Reached! 🌌</span>
           </div>
         </div>
         

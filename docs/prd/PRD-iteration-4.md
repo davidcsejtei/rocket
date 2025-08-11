@@ -37,7 +37,6 @@ Deploy a PyFlink streaming job that continuously monitors the "rocket-telemetry"
    | `fuelLeakRate` | 50.0-200.0 | Critical Fuel Leak |
    | `engineTemp` | 3400-4000 | Thermal Anomaly |
    | `thrust` | 0 | Engine Shutdown |
-   | `activeAnomalies` | 1+ | Multiple Concurrent Issues |
 
 3. **Anomaly Message Structure**
    ```typescript

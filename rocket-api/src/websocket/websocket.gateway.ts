@@ -190,8 +190,7 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
         
         sensorNoise: Math.random() * 2, // Increased noise during emergency
         guidanceError: Math.random() * 5, // Higher error during emergency
-        fuelLeakRate: 0,
-        activeAnomalies: 1 // Emergency condition active
+        fuelLeakRate: 0
       };
 
       // Broadcast simulated telemetry

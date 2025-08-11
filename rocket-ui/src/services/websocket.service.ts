@@ -66,7 +66,7 @@ class WebSocketService {
     missionTime: number
   } | null>(null)
 
-  private readonly targetAltitude = 101445 // 101,445m
+  private readonly targetAltitude = 100000 // 100,000m - Mission success altitude
   private celebratedRockets = new Set<string>()
   private lastProcessedAltitude = new Map<string, number>()
 
@@ -312,7 +312,7 @@ class WebSocketService {
     }
 
     console.log(
-      `🎉 Mission Success! Rocket ${message.rocketId} reached ${message.altitude.toLocaleString()}m at mission time ${message.missionTime}s`,
+      `🎉 Mission Success! Rocket ${message.rocketId} reached ${message.altitude.toLocaleString()}m (100km altitude milestone) at mission time ${message.missionTime}s`,
     )
   }
 
@@ -350,10 +350,6 @@ class WebSocketService {
   }
 
   public resetAnomalyData(): void {
-    console.log('🔄 Resetting anomaly data...');
-    console.log('Before reset - recentAnomalies:', this.recentAnomalies.value.length);
-    console.log('Before reset - allAnomalies:', this.allAnomalies.value.length);
-    
     // Clear anomaly alerts
     this.recentAnomalies.value = []
     this.allAnomalies.value = []
@@ -361,8 +357,6 @@ class WebSocketService {
     // Reset anomaly status
     this.anomalyStatus.anomaliesReceived = 0
 
-    console.log('After reset - recentAnomalies:', this.recentAnomalies.value.length);
-    console.log('After reset - allAnomalies:', this.allAnomalies.value.length);
     console.log('Anomaly data reset completed')
   }
 
@@ -472,8 +466,7 @@ class WebSocketService {
         acceleration: gravity + (dragCoefficient * Math.abs(currentVelocity) / 10),
         thrust: 0, // No thrust during emergency landing
         fuelRemaining: lastMessage.fuelRemaining,
-        dragForce: dragCoefficient * Math.abs(currentVelocity),
-        activeAnomalies: 1 // Emergency condition active
+        dragForce: dragCoefficient * Math.abs(currentVelocity)
       }
 
       // Add simulated message (but don't trigger normal processing)

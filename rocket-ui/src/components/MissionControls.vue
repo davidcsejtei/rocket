@@ -22,18 +22,6 @@
         <span class="button-icon">🚨</span>
         <span class="button-text">Reset Anomalies</span>
       </button>
-
-      <!-- Debug button for testing direct reset -->
-      <button 
-        class="reset-button debug"
-        @click="debugDirectReset"
-        :disabled="isLoading"
-        title="Direct frontend reset for debugging"
-        style="background: linear-gradient(135deg, rgba(255, 152, 0, 0.8) 0%, rgba(255, 193, 7, 0.8) 100%);"
-      >
-        <span class="button-icon">🔧</span>
-        <span class="button-text">Debug Reset</span>
-      </button>
     </div>
     
     <!-- Success Message -->
@@ -201,7 +189,6 @@ const resetAnomalyData = async () => {
     const result = await response.json()
     
     if (result.success) {
-      console.log('🎯 API reset successful, clearing frontend state...');
       // Clear frontend state
       websocketService.resetAnomalyData()
       
@@ -229,14 +216,6 @@ const resetAnomalyData = async () => {
   }
 }
 
-const debugDirectReset = () => {
-  console.log('🔧 Debug: Direct frontend anomaly reset');
-  websocketService.resetAnomalyData();
-  successMessage.value = 'Debug: Frontend anomaly data cleared';
-  setTimeout(() => {
-    successMessage.value = '';
-  }, 3000);
-};
 
 const clearMessages = () => {
   successMessage.value = ''
@@ -272,7 +251,7 @@ const clearMessages = () => {
 
 .controls-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.8rem;
   margin-bottom: 1rem;
 }

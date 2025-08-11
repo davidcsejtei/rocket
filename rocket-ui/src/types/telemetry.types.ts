@@ -31,7 +31,6 @@ export interface TelemetryMessage {
   sensorNoise: number;
   guidanceError: number;
   fuelLeakRate: number;
-  activeAnomalies: number;
 }
 
 export type KafkaConnectionState = 

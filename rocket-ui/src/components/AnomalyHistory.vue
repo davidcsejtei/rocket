@@ -52,11 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch, computed } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { websocketService } from '@/services/websocket.service';
 import type { AnomalyAlert } from '@/types/anomaly.types';
 
-const allAnomalies = computed(() => websocketService.allAnomalies.value);
+const allAnomalies = websocketService.allAnomalies;
 const historyContainer = ref<HTMLElement>();
 
 const formatAnomalyType = (type: string): string => {
@@ -104,8 +104,7 @@ const selectAlert = (alert: AnomalyAlert): void => {
 
 watch(
   () => allAnomalies.value.length,
-  async (newLength, oldLength) => {
-    console.log(`Anomaly history length changed: ${oldLength} -> ${newLength}`);
+  async () => {
     await nextTick();
     if (historyContainer.value) {
       historyContainer.value.scrollTop = 0;

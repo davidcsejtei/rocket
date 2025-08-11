@@ -175,8 +175,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       typeof data.apogee === 'number' &&
       typeof data.sensorNoise === 'number' &&
       typeof data.guidanceError === 'number' &&
-      typeof data.fuelLeakRate === 'number' &&
-      typeof data.activeAnomalies === 'number'
+      typeof data.fuelLeakRate === 'number'
     );
   }
 
