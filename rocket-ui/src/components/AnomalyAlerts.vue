@@ -12,6 +12,9 @@
         <div v-if="mediumCount > 0" :class="['alert-badge', 'medium']">
           {{ mediumCount }}
         </div>
+        <div v-if="lowCount > 0" :class="['alert-badge', 'low']">
+          {{ lowCount }}
+        </div>
       </div>
     </div>
     
@@ -27,16 +30,23 @@
       </div>
     </div>
     
-    <div v-if="recentAlerts.length > 0" class="recent-alerts">
-      <div class="alerts-title">Recent Alerts</div>
+    <div v-if="priorityAlerts.length > 0" class="recent-alerts">
+      <div class="alerts-title">Priority Alerts (Top 3)</div>
       <div 
-        v-for="alert in recentAlerts" 
+        v-for="(alert, index) in priorityAlerts" 
         :key="alert.alertId"
         :class="['alert-item', alert.severity]"
+        :data-priority="index + 1"
       >
         <div class="alert-main">
+          <div class="alert-header">
+            <div class="severity-indicator">
+              <span class="severity-badge">{{ alert.severity.toUpperCase() }}</span>
+              <span class="priority-rank">#{{ index + 1 }}</span>
+            </div>
+            <div class="alert-time">{{ formatTime(alert.timestamp) }}</div>
+          </div>
           <div class="alert-type">{{ formatAnomalyType(alert.anomalyType) }}</div>
-          <div class="alert-time">{{ formatTime(alert.timestamp) }}</div>
         </div>
         <div class="alert-details">
           <span class="alert-rocket">{{ alert.rocketId }}</span>
@@ -59,6 +69,7 @@ import type { AnomalyAlert } from '@/types/anomaly.types';
 
 const anomalyStatus = websocketService.anomalyStatus;
 const recentAlerts = websocketService.recentAnomalies;
+const priorityAlerts = websocketService.priorityAlerts;
 
 const statusText = computed(() => {
   switch (anomalyStatus.state) {
@@ -76,15 +87,19 @@ const statusText = computed(() => {
 });
 
 const criticalCount = computed(() => 
-  recentAlerts.value.filter(alert => alert.severity === 'critical').length
+  priorityAlerts.value.filter(alert => alert.severity === 'critical').length
 );
 
 const highCount = computed(() => 
-  recentAlerts.value.filter(alert => alert.severity === 'high').length
+  priorityAlerts.value.filter(alert => alert.severity === 'high').length
 );
 
 const mediumCount = computed(() => 
-  recentAlerts.value.filter(alert => alert.severity === 'medium').length
+  priorityAlerts.value.filter(alert => alert.severity === 'medium').length
+);
+
+const lowCount = computed(() => 
+  priorityAlerts.value.filter(alert => alert.severity === 'low').length
 );
 
 const formatAnomalyType = (type: string): string => {
@@ -167,6 +182,10 @@ onMounted(() => {
   background: #ff9800;
 }
 
+.alert-badge.low {
+  background: #2196f3;
+}
+
 .anomaly-status-row {
   display: flex;
   align-items: center;
@@ -236,12 +255,22 @@ onMounted(() => {
 }
 
 .alerts-title {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alerts-title::before {
+  content: '⚠️';
+  font-size: 14px;
 }
 
 .alert-item {
@@ -269,21 +298,89 @@ onMounted(() => {
 }
 
 .alert-item.low {
-  border-left-color: #ffc107;
-  background: rgba(255, 193, 7, 0.1);
+  border-left-color: #2196f3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.alert-item[data-priority="1"] {
+  border: 2px solid rgba(156, 39, 176, 0.3);
+  box-shadow: 0 0 12px rgba(156, 39, 176, 0.2);
+  animation: priority-pulse 2s ease-in-out infinite;
+}
+
+.alert-item[data-priority="1"].critical {
+  animation: priority-pulse 2s ease-in-out infinite, priority-glow 3s ease-in-out infinite;
+}
+
+.alert-item[data-priority="2"] {
+  border: 2px solid rgba(244, 67, 54, 0.2);
+}
+
+.alert-item[data-priority="3"] {
+  border: 2px solid rgba(255, 152, 0, 0.2);
 }
 
 .alert-main {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.alert-header {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+}
+
+.severity-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.severity-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: white;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.alert-item.critical .severity-badge {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.alert-item.high .severity-badge {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.alert-item.medium .severity-badge {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.alert-item.low .severity-badge {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.priority-rank {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .alert-type {
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
+  margin-left: 2px;
 }
 
 .alert-time {
@@ -344,6 +441,24 @@ onMounted(() => {
     opacity: 0.8;
     transform: scale(1.05);
     box-shadow: 0 0 0 4px rgba(156, 39, 176, 0);
+  }
+}
+
+@keyframes priority-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(156, 39, 176, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(156, 39, 176, 0.4);
+  }
+}
+
+@keyframes priority-glow {
+  0%, 100% {
+    background: rgba(156, 39, 176, 0.1);
+  }
+  50% {
+    background: rgba(156, 39, 176, 0.15);
   }
 }
 

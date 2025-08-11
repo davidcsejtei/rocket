@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { io, Socket } from 'socket.io-client'
 import type { ConnectionState, ConnectionStatus, ServerMessage } from '@/types/websocket.types'
 import type { TelemetryMessage, KafkaStatus } from '@/types/telemetry.types'
@@ -31,6 +31,22 @@ class WebSocketService {
   public allAnomalies = ref<AnomalyAlert[]>([])
   private readonly maxRecentAnomalies = 10
   private readonly maxAllAnomalies = 50
+
+  // Severity-based priority alerts (top 3)
+  public priorityAlerts = computed(() => {
+    const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
+    
+    return [...this.recentAnomalies.value]
+      .sort((a, b) => {
+        // First sort by severity (highest first)
+        const severityDiff = (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0)
+        if (severityDiff !== 0) return severityDiff
+        
+        // If same severity, sort by timestamp (newest first)
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      })
+      .slice(0, 3)
+  })
 
   // Celebration state management
   public celebrationData = ref<{
