@@ -180,6 +180,10 @@ class WebSocketService {
       this.anomalyStatus.state = 'error'
       this.anomalyStatus.lastError = error.message
     })
+
+    this.socket.on('emergency-reset-completed', (data: { timestamp: string; resetBy: string }) => {
+      console.log('✅ Backend confirmed emergency reset completed:', data)
+    })
   }
 
   private updateConnectionState(state: ConnectionState): void {
@@ -242,6 +246,12 @@ class WebSocketService {
     // Skip processing real telemetry during emergency mode
     if (this.emergencyMode.value) {
       console.log('🛑 Skipping telemetry processing - Emergency mode active')
+      return
+    }
+
+    // Additional check: skip processing if we're in any emergency landing state
+    if (this.emergencyLandingInProgress.value || this.isQuickLandingMode.value) {
+      console.log('🛑 Skipping telemetry processing - Emergency landing in progress')
       return
     }
 
@@ -602,6 +612,12 @@ class WebSocketService {
   }
 
   private addSimulatedTelemetryMessage(message: TelemetryMessage): void {
+    // Check if emergency landing is still active before adding simulated data
+    if (!this.emergencyLandingInProgress.value && !this.isQuickLandingMode.value) {
+      console.log('🛑 Skipping simulated telemetry - Emergency landing no longer active')
+      return
+    }
+
     // Add to telemetry messages but skip normal processing
     this.telemetryMessages.value.unshift(message)
 
@@ -637,21 +653,74 @@ class WebSocketService {
   }
 
   public resetEmergencyState(): void {
-    if (this.emergencySimulationInterval) {
-      clearInterval(this.emergencySimulationInterval)
-      this.emergencySimulationInterval = null
-    }
+    console.log('🔄 Starting emergency state reset...')
 
-    // Reset emergency state
-    this.emergencyMode.value = false
+    // Step 1: Stop all simulation intervals immediately
+    this.stopAllSimulations()
+
+    // Step 2: Notify backend to stop any server-side emergency simulation
+    this.notifyBackendEmergencyReset()
+
+    // Step 3: Reset emergency state variables
     this.emergencyLandingInProgress.value = false
     this.isQuickLandingMode.value = false
     this.currentRocketStatus.value = 'prelaunch'
 
-    // Clean up all data for fresh start
-    this.resetAllDataForFreshStart()
+    // Step 4: Clean up all data for fresh start (but delay telemetry resumption)
+    this.resetAllDataForFreshStartWithDelay()
 
-    console.log('🔄 Emergency state reset - All data cleaned for fresh start')
+    console.log('🔄 Emergency state reset completed - All data cleaned for fresh start')
+  }
+
+  private stopAllSimulations(): void {
+    // Clear any existing emergency simulation intervals
+    if (this.emergencySimulationInterval) {
+      clearInterval(this.emergencySimulationInterval)
+      this.emergencySimulationInterval = null
+      console.log('🛑 Emergency simulation interval cleared')
+    }
+
+    // Keep emergency mode active temporarily to block any incoming data
+    this.emergencyMode.value = true
+    console.log('🛑 Emergency mode maintained to block incoming telemetry')
+  }
+
+  private notifyBackendEmergencyReset(): void {
+    // Send reset signal to backend to stop any server-side simulation
+    if (this.socket?.connected) {
+      this.socket.emit('emergency-reset')
+      console.log('📡 Backend notified of emergency reset')
+    }
+  }
+
+  private resetAllDataForFreshStartWithDelay(): void {
+    // Immediately clear all UI data
+    this.clearAllUIData()
+
+    // Wait a moment for any pending operations to complete, then resume telemetry
+    setTimeout(() => {
+      this.resumeTelemetryProcessing()
+    }, 1000) // 1-second delay to ensure cleanup is complete
+  }
+
+  private clearAllUIData(): void {
+    // Clear all telemetry data
+    this.telemetryMessages.value.splice(0, this.telemetryMessages.value.length)
+    this.kafkaStatus.messagesReceived = 0
+
+    // Clear all anomaly data
+    this.recentAnomalies.value.splice(0, this.recentAnomalies.value.length)
+    this.allAnomalies.value.splice(0, this.allAnomalies.value.length)
+    this.anomalyStatus.anomaliesReceived = 0
+
+    // Reset rocket status and history
+    this.currentRocketStatus.value = 'prelaunch'
+    this.statusHistory.value.splice(0, this.statusHistory.value.length)
+
+    // Reset celebration state
+    this.resetCelebrationState()
+
+    console.log('🧹 All UI data cleared immediately')
   }
 
   private resetAllDataForFreshStart(): void {
@@ -681,13 +750,15 @@ class WebSocketService {
     // Allow telemetry processing to resume
     this.emergencyMode.value = false
     
-    // Reconnect to get fresh status
+    // Reconnect to get fresh status (but only request status, don't generate data)
     if (this.socket?.connected) {
+      console.log('📡 Requesting fresh connection status after reset')
+      // Only request status updates, avoid any data generation
       this.requestKafkaStatus()
       this.requestAnomalyStatus()
     }
     
-    console.log('▶️ Telemetry processing resumed - Ready for new data')
+    console.log('▶️ Telemetry processing resumed - Ready for new mission data')
   }
 }
 

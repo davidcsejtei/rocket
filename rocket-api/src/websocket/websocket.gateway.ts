@@ -121,6 +121,31 @@ export class WebSocketGatewayService implements OnGatewayInit, OnGatewayConnecti
     });
   }
 
+  @SubscribeMessage('emergency-reset')
+  handleEmergencyReset(client: Socket): void {
+    this.logger.log(`Emergency reset initiated by client: ${client.id}`);
+    
+    // Stop all emergency simulations immediately
+    this.emergencySimulations.forEach((interval, clientId) => {
+      clearInterval(interval);
+      this.logger.log(`Cleared emergency simulation for client: ${clientId}`);
+    });
+    
+    // Clear all emergency simulations
+    this.emergencySimulations.clear();
+    
+    // Reset emergency mode
+    this.emergencyMode = false;
+    
+    // Notify all clients that emergency has been reset
+    this.server.emit('emergency-reset-completed', {
+      timestamp: new Date().toISOString(),
+      resetBy: client.id
+    });
+    
+    this.logger.log('Emergency mode reset - all simulations stopped');
+  }
+
   private startEmergencyLandingSimulation(clientId: string): void {
     // Clear any existing simulation for this client
     if (this.emergencySimulations.has(clientId)) {
