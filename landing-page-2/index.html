@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Telemetry System - Monitor your rockets in real time</title>
+    <meta name="description" content="Advanced rocket telemetry platform with real-time monitoring, predictive analytics, and automated mission insights for aerospace operations.">
+    <meta property="og:title" content="Rocket Telemetry System">
+    <meta property="og:description" content="Monitor your rockets in real time with advanced telemetry and predictive analytics">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Rocket Telemetry System">
+    <meta name="twitter:description" content="Monitor your rockets in real time with advanced telemetry and predictive analytics">
+    <style>
+        :root {
+            --purple-primary: #A855F7;
+            --purple-hover: #B565F8;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D1D5DB;
+            --text-muted: #9CA3AF;
+            --surface: rgba(30, 41, 59, 0.8);
+            --border: rgba(148, 163, 184, 0.2);
+            --radius: 8px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(ellipse at center, #1e1b4b 0%, #0f172a 70%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(168, 85, 247, 0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(168, 85, 247, 0.2), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.1), transparent);
+            background-size: 200px 100px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--purple-primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+
+        .skip-link:focus {
+            top: 6px;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 0;
+            transition: backdrop-filter 0.3s ease;
+        }
+
+        .header.scrolled {
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--purple-primary);
+            color: white;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--purple-hover);
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-primary);
+        }
+
+        .hero {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--purple-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .rocket-illustration {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .rocket-svg {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes thruster {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .telemetry-dot {
+            animation: pulse 2s infinite;
+        }
+
+        .thruster-glow {
+            animation: thruster 1.5s infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .telemetry-dot,
+            .thruster-glow,
+            .btn:hover {
+                animation: none;
+                transform: none;
+            }
+        }
+
+        .benefits {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .benefit-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .benefit-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+        }
+
+        .benefit-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-desc {
+            color: var(--text-muted);
+        }
+
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .features-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .features-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(8px);
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        .feature-content h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-content p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .dashboard-preview {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-preview h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-mock {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 0;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        .dashboard-header {
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .dashboard-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .dashboard-tab.active {
+            background: var(--purple-primary);
+            color: white;
+        }
+
+        .dashboard-body {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 400px;
+        }
+
+        .dashboard-sidebar {
+            background: rgba(15, 23, 42, 0.6);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item.active {
+            background: rgba(168, 85, 247, 0.2);
+            color: var(--purple-primary);
+        }
+
+        .dashboard-main {
+            padding: 1.5rem;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--purple-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .events-table {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .table-row {
+            padding: 0.75rem;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 100px 80px;
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .status-chip {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .llm-banner {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .llm-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .llm-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .llm-card p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .faq {
+            padding: 6rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+        }
+
+        .faq-item {
+            margin-bottom: 1rem;
+        }
+
+        .faq-item details {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(8px);
+        }
+
+        .faq-item summary {
+            padding: 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: var(--radius);
+        }
+
+        .faq-item summary:hover {
+            background: rgba(148, 163, 184, 0.05);
+        }
+
+        .faq-content {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-brand {
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .footer-section a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .footer-section a:hover {
+            color: var(--text-primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            width: 24px;
+            height: 24px;
+            color: var(--text-muted);
+        }
+
+        .social-link:hover {
+            color: var(--purple-primary);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .dashboard-body {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .dashboard-sidebar {
+                display: none;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--purple-primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+    
+    <header class="header" id="header">
+        <nav class="nav" role="navigation">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 6L12 22L16 20L20 22L16 6Z" fill="currentColor"/>
+                    <circle cx="16" cy="10" r="1" fill="#A855F7"/>
+                    <circle cx="16" cy="14" r="1" fill="#A855F7"/>
+                    <circle cx="16" cy="18" r="1" fill="#A855F7"/>
+                </svg>
+                <span>Rocket Telemetry System</span>
+            </div>
+            
+            <ul class="nav-links">
+                <li><a href="#product" class="nav-link">Product</a></li>
+                <li><a href="#technology" class="nav-link">Technology</a></li>
+                <li><a href="#pricing" class="nav-link">Pricing</a></li>
+                <li><a href="#docs" class="nav-link">Docs</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            
+            <div class="auth-actions">
+                <a href="#login" class="btn btn-secondary">Log in</a>
+                <a href="#signup" class="btn btn-primary">Sign up</a>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main">
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Monitor your rockets in real time</h1>
+                <p class="hero-subtitle">Advanced telemetry platform delivering live mission data, predictive trajectory analysis, and automated anomaly detection for critical aerospace operations.</p>
+                <div class="hero-actions">
+                    <a href="#signup" class="btn btn-primary">Get started</a>
+                    <a href="#demo" class="btn btn-secondary">See how it works</a>
+                </div>
+            </div>
+            
+            <div class="rocket-illustration">
+                <svg class="rocket-svg" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rocketGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#1e293b"/>
+                            <stop offset="50%" style="stop-color:#334155"/>
+                            <stop offset="100%" style="stop-color:#475569"/>
+                        </linearGradient>
+                        <linearGradient id="thrusterGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#A855F7;stop-opacity:0.8"/>
+                            <stop offset="100%" style="stop-color:#EC4899;stop-opacity:0.4"/>
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Nose Cone -->
+                    <path d="M200 50 L180 120 L220 120 Z" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <text x="240" y="85" fill="#9CA3AF" font-size="12">Nose Cone</text>
+                    <line x1="220" y1="85" x2="235" y2="85" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Payload Bay -->
+                    <rect x="180" y="120" width="40" height="80" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <circle class="telemetry-dot" cx="190" cy="140" r="2" fill="#A855F7"/>
+                    <circle class="telemetry-dot" cx="210" cy="160" r="2" fill="#A855F7"/>
+                    <text x="240" y="160" fill="#9CA3AF" font-size="12">Payload Bay</text>
+                    <line x1="220" y1="160" x2="235" y2="160" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Stage Separator -->
+                    <rect x="175" y="200" width="50" height="8" fill="#A855F7"/>
+                    <text x="240" y="204" fill="#9CA3AF" font-size="12">Stage</text>
+                    <line x1="225" y1="204" x2="235" y2="204" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Fuel Tank -->
+                    <rect x="180" y="208" width="40" height="200" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <circle class="telemetry-dot" cx="190" cy="240" r="2" fill="#A855F7"/>
+                    <circle class="telemetry-dot" cx="210" cy="280" r="2" fill="#A855F7"/>
+                    <circle class="telemetry-dot" cx="190" cy="320" r="2" fill="#A855F7"/>
+                    <circle class="telemetry-dot" cx="210" cy="360" r="2" fill="#A855F7"/>
+                    <text x="240" y="308" fill="#9CA3AF" font-size="12">Fuel Tank</text>
+                    <line x1="220" y1="308" x2="235" y2="308" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Engine Nozzle -->
+                    <path d="M180 408 L185 450 L215 450 L220 408 Z" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <circle class="telemetry-dot" cx="200" cy="430" r="2" fill="#A855F7"/>
+                    <text x="240" y="429" fill="#9CA3AF" font-size="12">Engine Nozzle</text>
+                    <line x1="220" y1="429" x2="235" y2="429" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Fins -->
+                    <path d="M180 380 L160 420 L180 408 Z" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <path d="M220 380 L240 420 L220 408 Z" fill="url(#rocketGradient)" stroke="#A855F7" stroke-width="2"/>
+                    <text x="120" y="400" fill="#9CA3AF" font-size="12">Fins</text>
+                    <line x1="160" y1="400" x2="115" y2="400" stroke="#A855F7" stroke-width="1" stroke-dasharray="2,2"/>
+                    
+                    <!-- Thruster Glow -->
+                    <ellipse class="thruster-glow" cx="200" cy="470" rx="20" ry="40" fill="url(#thrusterGlow)"/>
+                    <ellipse class="thruster-glow" cx="200" cy="490" rx="15" ry="30" fill="url(#thrusterGlow)" opacity="0.6"/>
+                    
+                    <!-- Measurement Lines -->
+                    <line x1="160" y1="50" x2="160" y2="450" stroke="#A855F7" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+                    <text x="140" y="250" fill="#9CA3AF" font-size="10" transform="rotate(-90 140 250)">400m</text>
+                </svg>
+            </div>
+        </section>
+
+        <section class="benefits">
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <svg class="benefit-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="20" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M14 24h20M24 14v20" stroke="#A855F7" stroke-width="2"/>
+                        <circle cx="24" cy="24" r="3" fill="#A855F7"/>
+                    </svg>
+                    <h3 class="benefit-title">Real-Time Streaming</h3>
+                    <p class="benefit-desc">Live telemetry data with sub-second latency for critical mission monitoring</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <svg class="benefit-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 40l32-32M8 8l32 32" stroke="#A855F7" stroke-width="2"/>
+                        <circle cx="16" cy="16" r="4" stroke="#A855F7" stroke-width="2"/>
+                        <circle cx="32" cy="32" r="4" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <h3 class="benefit-title">Anomaly Detection</h3>
+                    <p class="benefit-desc">AI-powered alerts identify potential issues before they become critical</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <svg class="benefit-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 24h36M24 6v36" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M12 12l24 24M36 12L12 36" stroke="#A855F7" stroke-width="1"/>
+                        <circle cx="24" cy="24" r="18" stroke="#A855F7" stroke-width="2" fill="none"/>
+                    </svg>
+                    <h3 class="benefit-title">Predictive Analytics</h3>
+                    <p class="benefit-desc">Advanced trajectory modeling and mission outcome forecasting</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <svg class="benefit-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="8" y="16" width="32" height="20" rx="2" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M16 12v4M32 12v4" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M16 24h16M16 28h12" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <h3 class="benefit-title">API-First Design</h3>
+                    <p class="benefit-desc">Comprehensive REST and WebSocket APIs for seamless integration</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="features-header">
+                <h2>Powerful capabilities for mission success</h2>
+                <p class="features-subtitle">Enterprise-grade reliability and scale for critical aerospace operations</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.46 9-11V7l-10-5z" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Multi-Sensor Fusion</h3>
+                        <p>Integrate data from accelerometers, gyroscopes, pressure sensors, and GPS for comprehensive vehicle state estimation.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12h18m-9-9v18" stroke="#A855F7" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="3" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Event Timeline Reconstruction</h3>
+                        <p>Detailed chronological analysis of mission events with microsecond precision timestamps and automated correlation.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Fault Tree Analysis</h3>
+                        <p>Automated failure mode identification and root cause analysis with probabilistic risk assessment.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M9 12l2 2 4-4" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>REST & WebSocket APIs</h3>
+                        <p>Full-featured APIs supporting real-time subscriptions, historical data queries, and command interfaces.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Role-Based Access Control</h3>
+                        <p>Granular permissions management with mission commander, operator, and observer access levels.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M14 2v6h6M16 13H8m8 4H8m2-8H8" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Secure Data Retention</h3>
+                        <p>Encrypted storage with configurable retention policies and automated compliance reporting for audit trails.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5l5 5 5-5m-5-9v14" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Data Export & Integration</h3>
+                        <p>Export telemetry in multiple formats including CSV, JSON, and industry-standard CCSDS protocols.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="#A855F7" stroke-width="2"/>
+                        <line x1="4" y1="22" x2="4" y2="15" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Mission Replay System</h3>
+                        <p>Replay test flights with variable playback speeds and synchronized multi-camera footage integration.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="#A855F7" stroke-width="2"/>
+                        <path d="M12 6v6l4 2" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>99.9% SLA Uptime</h3>
+                        <p>High-availability infrastructure with redundant data centers and automatic failover capabilities.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2m13-9a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm6 0v6m3-3h-6" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Team Collaboration Tools</h3>
+                        <p>Shared workspaces, annotation systems, and real-time commenting for distributed mission control teams.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" stroke="#A855F7" stroke-width="2"/>
+                    </svg>
+                    <div class="feature-content">
+                        <h3>Custom Alert Rules</h3>
+                        <p>Define complex threshold-based and ML-driven alerts with escalation policies and automated response actions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-preview">
+            <h2>Live Mission Control Dashboard</h2>
+            <div class="dashboard-mock">
+                <div class="dashboard-header">
+                    <div class="dashboard-tabs">
+                        <button class="dashboard-tab active">Overview</button>
+                        <button class="dashboard-tab">Sensors</button>
+                        <button class="dashboard-tab">Alerts</button>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.875rem;">Mission: Starship SN-24 | T+00:02:45</div>
+                </div>
+                <div class="dashboard-body">
+                    <div class="dashboard-sidebar">
+                        <div class="sidebar-section">
+                            <div class="sidebar-title">Data Streams</div>
+                            <div class="sidebar-item active">
+                                <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: block;"></span>
+                                IMU Primary
+                            </div>
+                            <div class="sidebar-item">
+                                <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: block;"></span>
+                                GPS Navigation
+                            </div>
+                            <div class="sidebar-item">
+                                <span style="width: 8px; height: 8px; background: #fbbf24; border-radius: 50%; display: block;"></span>
+                                Engine Telemetry
+                            </div>
+                            <div class="sidebar-item">
+                                <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: block;"></span>
+                                Pressure Sensors
+                            </div>
+                        </div>
+                        <div class="sidebar-section">
+                            <div class="sidebar-title">Subsystems</div>
+                            <div class="sidebar-item">Avionics</div>
+                            <div class="sidebar-item">Propulsion</div>
+                            <div class="sidebar-item">Guidance</div>
+                            <div class="sidebar-item">Recovery</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-main">
+                        <div class="dashboard-stats">
+                            <div class="stat-card">
+                                <div class="stat-value">847</div>
+                                <div class="stat-label">Altitude (m)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">127</div>
+                                <div class="stat-label">Velocity (m/s)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">4.2</div>
+                                <div class="stat-label">G-Force</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">98%</div>
+                                <div class="stat-label">Fuel Level</div>
+                            </div>
+                        </div>
+                        <div class="events-table">
+                            <div class="table-header">Recent Events</div>
+                            <div class="table-row">
+                                <span>Engine ignition sequence complete</span>
+                                <span class="status-chip status-success">Normal</span>
+                                <span>T+00:45</span>
+                            </div>
+                            <div class="table-row">
+                                <span>Telemetry link established</span>
+                                <span class="status-chip status-success">Normal</span>
+                                <span>T+00:30</span>
+                            </div>
+                            <div class="table-row">
+                                <span>Minor pressure fluctuation detected</span>
+                                <span class="status-chip status-warning">Warning</span>
+                                <span>T+00:15</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="llm-banner">
+            <div class="llm-card">
+                <h2>AI Mission Assistant</h2>
+                <p>Get instant answers about mission data with natural language queries, automated log summarization, and intelligent anomaly explanations powered by advanced AI.</p>
+                <a href="#demo" class="btn btn-primary">Request a Demo</a>
+            </div>
+        </section>
+
+        <section class="faq">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>How fresh is the telemetry data?</summary>
+                    <div class="faq-content">
+                        <p>Our platform provides real-time data with sub-second latency. Telemetry streams are processed and displayed within 100-500ms of being received from your vehicle systems.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>What APIs are available for integration?</summary>
+                    <div class="faq-content">
+                        <p>We offer comprehensive REST APIs for data retrieval and configuration, WebSocket APIs for real-time streaming, and GraphQL endpoints for complex queries. Full API documentation and SDKs are available for major programming languages.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>How do you handle data security and compliance?</summary>
+                    <div class="faq-content">
+                        <p>All data is encrypted in transit and at rest using AES-256. We maintain SOC 2 Type II compliance and can support ITAR requirements. Role-based access control ensures only authorized personnel access sensitive mission data.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>Can I deploy this on-premises?</summary>
+                    <div class="faq-content">
+                        <p>Yes, we offer both cloud-hosted and on-premises deployment options. Our hybrid architecture allows you to keep sensitive data on-site while leveraging cloud resources for analysis and collaboration.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>What's included in the pricing?</summary>
+                    <div class="faq-content">
+                        <p>Pricing is based on the number of data streams and storage requirements. All plans include unlimited users, API access, standard integrations, and 24/7 support during mission-critical operations.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>How does anomaly detection work?</summary>
+                    <div class="faq-content">
+                        <p>Our AI models analyze patterns in your historical mission data to establish normal operational parameters. The system automatically detects deviations and can predict potential failures before they occur, with customizable alert thresholds.</p>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="faq-item">
+                <details>
+                    <summary>What support do you provide during missions?</summary>
+                    <div class="faq-content">
+                        <p>We offer 24/7 mission support with dedicated engineers available during critical flight operations. This includes real-time troubleshooting, system monitoring, and emergency response coordination.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <p>Advanced rocket telemetry platform for mission-critical aerospace operations. Trusted by leading space companies worldwide.</p>
+                <div class="social-links">
+                    <a href="#linkedin" class="social-link" aria-label="LinkedIn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" stroke="currentColor" stroke-width="2"/>
+                            <rect x="2" y="9" width="4" height="12" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </a>
+                    <a href="#github" class="social-link" aria-label="GitHub">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </a>
+                    <a href="#twitter" class="social-link" aria-label="X (Twitter)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5 0-.28-.03-.56-.08-.83A7.72 7.72 0 0 0 23 3z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h3>Product</h3>
+                    <a href="#features">Features</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#integrations">Integrations</a>
+                    <a href="#enterprise">Enterprise</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <a href="#docs">Documentation</a>
+                    <a href="#status">System Status</a>
+                    <a href="#security">Security</a>
+                    <a href="#support">Support</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <a href="#about">About</a>
+                    <a href="#careers">Careers</a>
+                    <a href="#terms">Terms</a>
+                    <a href="#privacy">Privacy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Rocket Telemetry System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const header = document.getElementById('header');
+        let lastScrollY = window.scrollY;
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            lastScrollY = window.scrollY;
+        });
+    </script>
+</body>
+</html>
