@@ -2,17 +2,20 @@
   <div class="anomaly-history-panel">
     <div class="history-header">
       <h3>Anomaly History</h3>
-      <span v-if="allAnomalies.length > 0" class="history-count">{{ allAnomalies.length }} total</span>
+      <span v-if="allAnomalies.length > 0" class="history-count"
+        >{{ allAnomalies.length }} total</span
+      >
     </div>
-    
+
     <div class="history-container" ref="historyContainer">
       <div v-if="allAnomalies.length === 0" class="empty-state">
         <span>No anomalies detected yet</span>
       </div>
-      
+
       <div
         v-for="alert in allAnomalies"
         :key="alert.alertId"
+        v-if="allAnomalies.length > 0"
         :class="['history-item', alert.severity]"
         @click="selectAlert(alert)"
       >
@@ -20,7 +23,7 @@
           <div class="history-type">{{ formatAnomalyType(alert.anomalyType) }}</div>
           <div class="history-time">{{ formatRelativeTime(alert.timestamp) }}</div>
         </div>
-        
+
         <div class="history-details">
           <div class="detail-row">
             <span class="detail-label">Rocket:</span>
@@ -39,7 +42,7 @@
             <span class="detail-value">{{ alert.expectedRange }}</span>
           </div>
         </div>
-        
+
         <div class="history-meta">
           <div :class="['severity-badge', alert.severity]">
             {{ alert.severity.toUpperCase() }}
@@ -52,65 +55,65 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
-import { websocketService } from '@/services/websocket.service';
-import type { AnomalyAlert } from '@/types/anomaly.types';
+import { nextTick, ref, watch } from 'vue'
+import { websocketService } from '@/services/websocket.service'
+import type { AnomalyAlert } from '@/types/anomaly.types'
 
-const allAnomalies = websocketService.allAnomalies;
-const historyContainer = ref<HTMLElement>();
+const allAnomalies = websocketService.allAnomalies
+const historyContainer = ref<HTMLElement>()
 
 const formatAnomalyType = (type: string): string => {
-  return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-};
+  return type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+}
 
 const formatRelativeTime = (timestamp: string): string => {
   try {
-    const now = Date.now();
-    const time = new Date(timestamp).getTime();
-    const diff = Math.abs(now - time) / 1000; // seconds
-    
+    const now = Date.now()
+    const time = new Date(timestamp).getTime()
+    const diff = Math.abs(now - time) / 1000 // seconds
+
     if (diff < 60) {
-      return `${Math.floor(diff)}s ago`;
+      return `${Math.floor(diff)}s ago`
     } else if (diff < 3600) {
-      return `${Math.floor(diff / 60)}m ago`;
+      return `${Math.floor(diff / 60)}m ago`
     } else {
-      return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 3600)}h ago`
     }
   } catch {
-    return 'Unknown time';
+    return 'Unknown time'
   }
-};
+}
 
 const formatMissionTime = (time: number): string => {
-  const minutes = Math.floor(time / 60);
-  const seconds = (time % 60).toFixed(1);
-  return `${minutes}:${seconds.padStart(4, '0')}`;
-};
+  const minutes = Math.floor(time / 60)
+  const seconds = (time % 60).toFixed(1)
+  return `${minutes}:${seconds.padStart(4, '0')}`
+}
 
 const formatValue = (value: number): string => {
-  if (value === 0) return '0';
+  if (value === 0) return '0'
   if (Math.abs(value) >= 1000000) {
-    return (value / 1000000).toFixed(1) + 'M';
+    return (value / 1000000).toFixed(1) + 'M'
   } else if (Math.abs(value) >= 1000) {
-    return (value / 1000).toFixed(1) + 'K';
+    return (value / 1000).toFixed(1) + 'K'
   } else {
-    return value.toFixed(1);
+    return value.toFixed(1)
   }
-};
+}
 
 const selectAlert = (alert: AnomalyAlert): void => {
-  console.log('Selected anomaly:', alert);
-};
+  console.log('Selected anomaly:', alert)
+}
 
 watch(
   () => allAnomalies.value.length,
   async () => {
-    await nextTick();
+    await nextTick()
     if (historyContainer.value) {
-      historyContainer.value.scrollTop = 0;
+      historyContainer.value.scrollTop = 0
     }
-  }
-);
+  },
+)
 </script>
 
 <style scoped>
@@ -310,20 +313,20 @@ watch(
     min-width: 300px;
     padding: 14px 16px;
   }
-  
+
   .history-header h3 {
     font-size: 15px;
   }
-  
+
   .history-type {
     font-size: 13px;
   }
-  
+
   .detail-label,
   .detail-value {
     font-size: 11px;
   }
-  
+
   .detail-label {
     width: 70px;
   }

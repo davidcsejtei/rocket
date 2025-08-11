@@ -4,21 +4,21 @@
       <div :class="['status-indicator', connectionStatus.state]"></div>
       <span class="status-text">{{ statusText }}</span>
     </div>
-    
+
     <div v-if="connectionStatus.state === 'connected'" class="connection-info">
       <div class="info-item">
         <span class="label">Uptime:</span>
         <span class="value">{{ uptime }}</span>
       </div>
     </div>
-    
+
     <div v-if="connectionStatus.state === 'reconnecting'" class="connection-info">
       <div class="info-item">
         <span class="label">Attempt:</span>
         <span class="value">{{ connectionStatus.reconnectAttempts }}/5</span>
       </div>
     </div>
-    
+
     <div v-if="connectionStatus.lastError && connectionStatus.state === 'error'" class="error-info">
       <span class="error-text">{{ connectionStatus.lastError }}</span>
     </div>
@@ -26,46 +26,46 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { websocketService } from '@/services/websocket.service';
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { websocketService } from '@/services/websocket.service'
 
-const connectionStatus = websocketService.connectionStatus;
-const uptime = ref('0s');
-let uptimeInterval: number | null = null;
+const connectionStatus = websocketService.connectionStatus
+const uptime = ref('0s')
+let uptimeInterval: number | null = null
 
 const statusText = computed(() => {
   switch (connectionStatus.state) {
     case 'connecting':
-      return 'Connecting...';
+      return 'Connecting...'
     case 'connected':
-      return 'Connected to Mission Control';
+      return 'Connected to Mission Control'
     case 'disconnected':
-      return 'Disconnected';
+      return 'Disconnected'
     case 'reconnecting':
-      return 'Reconnecting...';
+      return 'Reconnecting...'
     case 'error':
-      return 'Connection Error';
+      return 'Connection Error'
     default:
-      return 'Unknown';
+      return 'Unknown'
   }
-});
+})
 
 const updateUptime = (): void => {
-  uptime.value = websocketService.getUptime();
-};
+  uptime.value = websocketService.getUptime()
+}
 
 onMounted(() => {
-  websocketService.connect();
-  
-  uptimeInterval = setInterval(updateUptime, 1000);
-});
+  websocketService.connect()
+
+  uptimeInterval = setInterval(updateUptime, 1000)
+})
 
 onUnmounted(() => {
   if (uptimeInterval) {
-    clearInterval(uptimeInterval);
+    clearInterval(uptimeInterval)
   }
-  websocketService.disconnect();
-});
+  websocketService.disconnect()
+})
 </script>
 
 <style scoped>
@@ -74,7 +74,6 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 16px 20px;
-  margin-top: 32px;
   backdrop-filter: blur(10px);
   min-width: 280px;
   max-width: 400px;
@@ -159,7 +158,8 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -174,11 +174,11 @@ onUnmounted(() => {
     min-width: 240px;
     padding: 14px 16px;
   }
-  
+
   .status-text {
     font-size: 13px;
   }
-  
+
   .label,
   .value,
   .error-text {
