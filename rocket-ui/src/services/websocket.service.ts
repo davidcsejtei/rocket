@@ -32,6 +32,16 @@ class WebSocketService {
   private readonly maxRecentAnomalies = 10
   private readonly maxAllAnomalies = 50
 
+  // Current rocket status tracking
+  public currentRocketStatus = ref<string>('prelaunch')
+  public statusHistory = ref<{ status: string; timestamp: Date; rocketId: string }[]>([])
+  private readonly maxStatusHistory = 20
+
+  // Emergency landing state
+  public emergencyMode = ref(false)
+  public emergencyLandingInProgress = ref(false)
+  private emergencySimulationInterval: number | null = null
+
   // Severity-based priority alerts (top 3)
   public priorityAlerts = computed(() => {
     const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
@@ -228,14 +238,46 @@ class WebSocketService {
   }
 
   private addTelemetryMessage(message: TelemetryMessage): void {
+    // Skip processing real telemetry during emergency mode
+    if (this.emergencyMode.value) {
+      return
+    }
+
     this.telemetryMessages.value.unshift(message)
 
     if (this.telemetryMessages.value.length > this.maxMessages) {
       this.telemetryMessages.value = this.telemetryMessages.value.slice(0, this.maxMessages)
     }
 
+    // Update current rocket status
+    this.updateRocketStatus(message)
+
     // Check for celebration trigger
     this.checkForCelebration(message)
+  }
+
+  private updateRocketStatus(message: TelemetryMessage): void {
+    const newStatus = message.status
+    const currentStatus = this.currentRocketStatus.value
+
+    // Only update if status has changed
+    if (newStatus !== currentStatus) {
+      this.currentRocketStatus.value = newStatus
+      
+      // Add to status history
+      this.statusHistory.value.unshift({
+        status: newStatus,
+        timestamp: new Date(),
+        rocketId: message.rocketId
+      })
+
+      // Keep only recent status changes
+      if (this.statusHistory.value.length > this.maxStatusHistory) {
+        this.statusHistory.value = this.statusHistory.value.slice(0, this.maxStatusHistory)
+      }
+
+      console.log(`🚀 Rocket status changed: ${currentStatus} → ${newStatus} (${message.rocketId})`)
+    }
   }
 
   private checkForCelebration(message: TelemetryMessage): void {
@@ -297,6 +339,10 @@ class WebSocketService {
     // Reset Kafka status message count
     this.kafkaStatus.messagesReceived = 0
 
+    // Reset rocket status
+    this.currentRocketStatus.value = 'prelaunch'
+    this.statusHistory.value = []
+
     // Reset celebration state (allow new celebrations)
     this.resetCelebrationState()
 
@@ -304,6 +350,10 @@ class WebSocketService {
   }
 
   public resetAnomalyData(): void {
+    console.log('🔄 Resetting anomaly data...');
+    console.log('Before reset - recentAnomalies:', this.recentAnomalies.value.length);
+    console.log('Before reset - allAnomalies:', this.allAnomalies.value.length);
+    
     // Clear anomaly alerts
     this.recentAnomalies.value = []
     this.allAnomalies.value = []
@@ -311,6 +361,8 @@ class WebSocketService {
     // Reset anomaly status
     this.anomalyStatus.anomaliesReceived = 0
 
+    console.log('After reset - recentAnomalies:', this.recentAnomalies.value.length);
+    console.log('After reset - allAnomalies:', this.allAnomalies.value.length);
     console.log('Anomaly data reset completed')
   }
 
@@ -344,6 +396,133 @@ class WebSocketService {
     if (this.socket?.connected) {
       this.socket.emit('get-anomaly-status')
     }
+  }
+
+  async initiateEmergencyLanding(): Promise<void> {
+    if (this.emergencyLandingInProgress.value) {
+      return
+    }
+
+    try {
+      // Send emergency landing request to backend
+      if (this.socket?.connected) {
+        this.socket.emit('emergency-landing-initiate')
+      }
+
+      // Set emergency state
+      this.emergencyMode.value = true
+      this.emergencyLandingInProgress.value = true
+
+      // Stop real telemetry and start simulation
+      this.startEmergencyLandingSimulation()
+
+      console.log('🚨 Emergency landing initiated')
+    } catch (error) {
+      console.error('Failed to initiate emergency landing:', error)
+      throw error
+    }
+  }
+
+  private startEmergencyLandingSimulation(): void {
+    // Clear any existing simulation
+    if (this.emergencySimulationInterval) {
+      clearInterval(this.emergencySimulationInterval)
+    }
+
+    // Get current telemetry as starting point
+    const lastMessage = this.telemetryMessages.value[0]
+    if (!lastMessage) return
+
+    let currentAltitude = lastMessage.altitude
+    let currentVelocity = -50 // Initial descent velocity
+    let simulationTime = 0
+
+    // Set rocket to abort status
+    this.currentRocketStatus.value = 'abort'
+
+    this.emergencySimulationInterval = setInterval(() => {
+      simulationTime += 1
+
+      // Calculate emergency descent physics
+      const gravity = 9.81
+      const dragCoefficient = 2.5 // Higher drag for emergency landing
+      const parachuteDeployed = currentAltitude < 5000
+
+      // Adjust descent rate based on altitude
+      if (parachuteDeployed) {
+        currentVelocity = Math.max(currentVelocity, -15) // Terminal velocity with parachute
+        dragCoefficient * 2
+      } else {
+        currentVelocity -= gravity * 0.5 // Deceleration due to drag
+        currentVelocity = Math.max(currentVelocity, -200) // Max descent rate
+      }
+
+      // Update altitude
+      currentAltitude += currentVelocity
+      currentAltitude = Math.max(0, currentAltitude)
+
+      // Create simulated telemetry message
+      const simulatedMessage: TelemetryMessage = {
+        ...lastMessage,
+        timestamp: new Date().toISOString(),
+        missionTime: lastMessage.missionTime + simulationTime,
+        status: currentAltitude <= 10 ? 'landed' : 'descent',
+        altitude: currentAltitude,
+        velocity: currentVelocity,
+        acceleration: gravity + (dragCoefficient * Math.abs(currentVelocity) / 10),
+        thrust: 0, // No thrust during emergency landing
+        fuelRemaining: lastMessage.fuelRemaining,
+        dragForce: dragCoefficient * Math.abs(currentVelocity),
+        activeAnomalies: 1 // Emergency condition active
+      }
+
+      // Add simulated message (but don't trigger normal processing)
+      this.addSimulatedTelemetryMessage(simulatedMessage)
+
+      // Check if landed
+      if (currentAltitude <= 0) {
+        this.completeEmergencyLanding()
+      }
+    }, 1000) // Update every second
+  }
+
+  private addSimulatedTelemetryMessage(message: TelemetryMessage): void {
+    // Add to telemetry messages but skip normal processing
+    this.telemetryMessages.value.unshift(message)
+
+    if (this.telemetryMessages.value.length > this.maxMessages) {
+      this.telemetryMessages.value = this.telemetryMessages.value.slice(0, this.maxMessages)
+    }
+
+    // Update rocket status for simulation
+    if (message.status !== this.currentRocketStatus.value) {
+      this.currentRocketStatus.value = message.status
+    }
+  }
+
+  private completeEmergencyLanding(): void {
+    if (this.emergencySimulationInterval) {
+      clearInterval(this.emergencySimulationInterval)
+      this.emergencySimulationInterval = null
+    }
+
+    this.emergencyLandingInProgress.value = false
+    this.currentRocketStatus.value = 'landed'
+
+    console.log('✅ Emergency landing completed successfully')
+  }
+
+  public resetEmergencyState(): void {
+    if (this.emergencySimulationInterval) {
+      clearInterval(this.emergencySimulationInterval)
+      this.emergencySimulationInterval = null
+    }
+
+    this.emergencyMode.value = false
+    this.emergencyLandingInProgress.value = false
+    this.currentRocketStatus.value = 'prelaunch'
+
+    console.log('🔄 Emergency state reset')
   }
 }
 

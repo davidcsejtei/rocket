@@ -2,7 +2,10 @@
   <div class="telemetry-panel">
     <div class="panel-header">
       <h3>Live Telemetry</h3>
-      <span v-if="messages.length > 0" class="message-count">{{ messages.length }} messages</span>
+      <div class="header-indicators">
+        <span v-if="isEmergencyMode" class="emergency-indicator">🚨 SIMULATION MODE</span>
+        <span v-if="messages.length > 0" class="message-count">{{ messages.length }} messages</span>
+      </div>
     </div>
 
     <div class="messages-container" ref="messagesContainer">
@@ -50,12 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import { websocketService } from '@/services/websocket.service'
 import type { TelemetryMessage } from '@/types/telemetry.types'
 
 const messages = websocketService.telemetryMessages
 const messagesContainer = ref<HTMLElement>()
+const isEmergencyMode = computed(() => websocketService.emergencyMode.value)
 
 const formatTime = (timestamp: string): string => {
   try {
@@ -113,6 +117,29 @@ watch(
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-indicators {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.emergency-indicator {
+  background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  animation: emergency-blink 1s ease-in-out infinite alternate;
+}
+
+@keyframes emergency-blink {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
 }
 
 .panel-header h3 {
