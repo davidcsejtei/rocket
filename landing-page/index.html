@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Telemetry System - Real-time Space Mission Monitoring</title>
+    <style>
+        /* Blueprint Theme CSS */
+        :root {
+            --blueprint-blue: #2B50E6;
+            --blueprint-light: #BFD0FF;
+            --blueprint-dark: #1939B7;
+            --background-white: #FFFFFF;
+            --grid-size: 8px;
+            --line-weight: 1.25px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: var(--background-white);
+            color: var(--blueprint-blue);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* Blueprint Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 1px 1px, var(--blueprint-light) 1px, transparent 0);
+            background-size: var(--grid-size) var(--grid-size);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Sticky Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--background-white);
+            border-bottom: var(--line-weight) dotted var(--blueprint-blue);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--blueprint-blue);
+            text-shadow: 0 0 1px var(--blueprint-blue);
+        }
+
+        .header-tagline {
+            font-size: 14px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 64px 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(45deg, transparent 24%, var(--blueprint-light) 25%, var(--blueprint-light) 26%, transparent 27%),
+                linear-gradient(-45deg, transparent 24%, var(--blueprint-light) 25%, var(--blueprint-light) 26%, transparent 27%);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-content p {
+            font-size: 16px;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            margin-top: 32px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid var(--blueprint-blue);
+            background: transparent;
+            color: var(--blueprint-blue);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--blueprint-blue);
+            color: var(--background-white);
+            border-width: 3px;
+        }
+
+        .btn-primary {
+            background: var(--blueprint-blue);
+            color: var(--background-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--blueprint-dark);
+            border-color: var(--blueprint-dark);
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 64px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            border-bottom: 1px dotted var(--blueprint-light);
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 64px;
+            height: 2px;
+            background: var(--blueprint-blue);
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .feature-item {
+            border: 2px solid var(--blueprint-light);
+            padding: 24px;
+            position: relative;
+        }
+
+        .feature-item::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px dotted var(--blueprint-light);
+        }
+
+        .feature-item h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 32px;
+            font-size: 14px;
+        }
+
+        .feature-table th,
+        .feature-table td {
+            border: 1px solid var(--blueprint-light);
+            padding: 12px 16px;
+            text-align: left;
+        }
+
+        .feature-table th {
+            background: rgba(43, 80, 230, 0.1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Q&A Section */
+        .qa-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .qa-table th,
+        .qa-table td {
+            border: 2px solid var(--blueprint-blue);
+            padding: 16px;
+            text-align: left;
+        }
+
+        .qa-table th {
+            background: var(--blueprint-blue);
+            color: var(--background-white);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .qa-table tr:nth-child(even) {
+            background: rgba(43, 80, 230, 0.05);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--blueprint-blue);
+            color: var(--background-white);
+            text-align: center;
+            padding: 32px;
+            font-size: 14px;
+        }
+
+        .footer-icons {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .footer-icon {
+            width: 24px;
+            height: 24px;
+            stroke: var(--background-white);
+            fill: none;
+            stroke-width: 2;
+            transition: stroke-width 0.2s ease;
+        }
+
+        .footer-icon:hover {
+            stroke-width: 3;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .header-title {
+                font-size: 18px;
+            }
+            
+            .hero-content h1 {
+                font-size: 32px;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Diagram Styles */
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+        }
+
+        .sensor-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .sensor-item {
+            text-align: center;
+            padding: 16px;
+            border: 1px dotted var(--blueprint-light);
+        }
+
+        .sensor-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .sensor-item p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Header -->
+    <header class="header">
+        <div class="header-title">Rocket Telemetry System</div>
+        <div class="header-tagline">Real-time monitoring & analysis for next-gen space missions</div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-svg">
+            <!-- Rocket SVG with Blueprint Style -->
+            <svg width="500" height="600" viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background Grid -->
+                <defs>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#BFD0FF" stroke-width="0.5" opacity="0.3"/>
+                    </pattern>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                            refX="0" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#2B50E6" />
+                    </marker>
+                </defs>
+                
+                <rect width="500" height="600" fill="url(#grid)"/>
+                
+                <!-- Main Rocket Body -->
+                <!-- Nose Cone -->
+                <path d="M 200 50 L 250 20 L 300 50 L 250 80 Z" 
+                      fill="none" stroke="#2B50E6" stroke-width="2"/>
+                <text x="320" y="40" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">NOSE CONE</text>
+                <line x1="300" y1="35" x2="315" y2="35" stroke="#2B50E6" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- Payload Bay -->
+                <rect x="180" y="80" width="140" height="120" 
+                      fill="none" stroke="#2B50E6" stroke-width="2"/>
+                <text x="340" y="130" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">PAYLOAD BAY</text>
+                <line x1="320" y1="140" x2="335" y2="130" stroke="#2B50E6" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- Fuel Tank -->
+                <rect x="170" y="200" width="160" height="200" 
+                      fill="none" stroke="#2B50E6" stroke-width="2"/>
+                <text x="350" y="290" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">FUEL TANK</text>
+                <line x1="330" y1="300" x2="345" y2="290" stroke="#2B50E6" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- Main Engine -->
+                <path d="M 190 400 L 250 450 L 310 400 L 330 420 L 280 480 L 250 520 L 220 480 L 170 420 Z" 
+                      fill="none" stroke="#2B50E6" stroke-width="2"/>
+                <text x="350" y="460" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">MAIN ENGINE</text>
+                <line x1="310" y1="450" x2="345" y2="460" stroke="#2B50E6" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- Dimension Lines -->
+                <!-- Height -->
+                <line x1="140" y1="20" x2="140" y2="520" stroke="#2B50E6" stroke-width="1" stroke-dasharray="5,5"/>
+                <line x1="130" y1="20" x2="150" y2="20" stroke="#2B50E6" stroke-width="1"/>
+                <line x1="130" y1="520" x2="150" y2="520" stroke="#2B50E6" stroke-width="1"/>
+                <text x="90" y="270" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6" transform="rotate(-90 90 270)">500m</text>
+                
+                <!-- Width -->
+                <line x1="170" y1="550" x2="330" y2="550" stroke="#2B50E6" stroke-width="1" stroke-dasharray="5,5"/>
+                <line x1="170" y1="540" x2="170" y2="560" stroke="#2B50E6" stroke-width="1"/>
+                <line x1="330" y1="540" x2="330" y2="560" stroke="#2B50E6" stroke-width="1"/>
+                <text x="250" y="575" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6" text-anchor="middle">160m</text>
+                
+                <!-- Exploded View Lines -->
+                <line x1="360" y1="50" x2="410" y2="30" stroke="#2B50E6" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrowhead)"/>
+                <line x1="360" y1="140" x2="420" y2="120" stroke="#2B50E6" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrowhead)"/>
+                <line x1="360" y1="300" x2="430" y2="280" stroke="#2B50E6" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrowhead)"/>
+                <line x1="360" y1="450" x2="440" y2="430" stroke="#2B50E6" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrowhead)"/>
+                
+                <!-- Component Detail Views -->
+                <!-- Nose Cone Detail -->
+                <g transform="translate(420, 10)">
+                    <circle cx="0" cy="0" r="15" fill="none" stroke="#2B50E6" stroke-width="1"/>
+                    <text x="20" y="5" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Heat Shield</text>
+                </g>
+                
+                <!-- Payload Detail -->
+                <g transform="translate(440, 100)">
+                    <rect x="-10" y="-10" width="20" height="20" fill="none" stroke="#2B50E6" stroke-width="1"/>
+                    <text x="15" y="5" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Satellite Deploy</text>
+                </g>
+                
+                <!-- Fuel Tank Detail -->
+                <g transform="translate(450, 260)">
+                    <rect x="-8" y="-15" width="16" height="30" fill="none" stroke="#2B50E6" stroke-width="1"/>
+                    <text x="12" y="5" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Liquid O2/RP-1</text>
+                </g>
+                
+                <!-- Engine Detail -->
+                <g transform="translate(460, 410)">
+                    <path d="M -10 -10 L 0 10 L 10 -10 Z" fill="none" stroke="#2B50E6" stroke-width="1"/>
+                    <text x="15" y="5" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Merlin Engine</text>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="hero-content">
+            <h1>Mission Control</h1>
+            <p>Advanced telemetry system designed for real-time monitoring of rocket launches and space missions. Our comprehensive platform provides engineers with critical data analysis, anomaly detection, and trajectory optimization capabilities.</p>
+            
+            <p>Built for aerospace professionals who demand precision, reliability, and instant access to mission-critical information. From pre-launch systems checks to orbital insertion tracking, we've got you covered.</p>
+            
+            <p>Experience the future of space mission monitoring with cutting-edge technology that has supported over 200 successful launches worldwide.</p>
+            
+            <div class="cta-buttons">
+                <a href="#demo" class="btn btn-primary">Request Demo</a>
+                <a href="#docs" class="btn">Developer Docs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Overview -->
+    <section class="section">
+        <h2 class="section-title">System Overview</h2>
+        
+        <div class="diagram-container">
+            <svg width="800" height="200" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Data Flow Diagram -->
+                <defs>
+                    <marker id="flow-arrow" markerWidth="10" markerHeight="7" 
+                            refX="0" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#2B50E6" />
+                    </marker>
+                </defs>
+                
+                <!-- Rocket Sensors -->
+                <g transform="translate(50, 100)">
+                    <rect x="-20" y="-30" width="40" height="60" fill="none" stroke="#2B50E6" stroke-width="2"/>
+                    <text x="0" y="-40" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">ROCKET</text>
+                    <text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6">SENSORS</text>
+                </g>
+                
+                <!-- Satellite Uplink -->
+                <g transform="translate(250, 100)">
+                    <path d="M -20 -20 L 20 -20 L 15 0 L 20 20 L -20 20 Z" fill="none" stroke="#2B50E6" stroke-width="2"/>
+                    <text x="0" y="-30" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">SATELLITE</text>
+                    <text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6">UPLINK</text>
+                </g>
+                
+                <!-- Ground Station -->
+                <g transform="translate(450, 100)">
+                    <path d="M -25 20 L -15 -20 L 0 -25 L 15 -20 L 25 20 Z" fill="none" stroke="#2B50E6" stroke-width="2"/>
+                    <text x="0" y="-35" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">GROUND</text>
+                    <text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6">STATION</text>
+                </g>
+                
+                <!-- Data Processor -->
+                <g transform="translate(650, 100)">
+                    <rect x="-30" y="-25" width="60" height="50" fill="none" stroke="#2B50E6" stroke-width="2"/>
+                    <text x="0" y="-35" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2B50E6">TELEMETRY</text>
+                    <text x="0" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#2B50E6">PROCESSOR</text>
+                </g>
+                
+                <!-- Flow Arrows -->
+                <line x1="70" y1="100" x2="230" y2="100" stroke="#2B50E6" stroke-width="2" 
+                      stroke-dasharray="5,3" marker-end="url(#flow-arrow)"/>
+                <line x1="270" y1="100" x2="425" y2="100" stroke="#2B50E6" stroke-width="2" 
+                      stroke-dasharray="5,3" marker-end="url(#flow-arrow)"/>
+                <line x1="475" y1="100" x2="620" y2="100" stroke="#2B50E6" stroke-width="2" 
+                      stroke-dasharray="5,3" marker-end="url(#flow-arrow)"/>
+                
+                <!-- Data Labels -->
+                <text x="150" y="85" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">RF Signal</text>
+                <text x="347" y="85" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Data Stream</text>
+                <text x="547" y="85" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#1939B7">Processed Data</text>
+            </svg>
+        </div>
+        
+        <div class="sensor-diagram">
+            <div class="sensor-item">
+                <h4>Temperature Sensors</h4>
+                <p>Engine bay, fuel tanks, avionics compartment monitoring</p>
+            </div>
+            <div class="sensor-item">
+                <h4>Pressure Sensors</h4>
+                <p>Fuel system, combustion chamber, atmospheric readings</p>
+            </div>
+            <div class="sensor-item">
+                <h4>Vibration Sensors</h4>
+                <p>Structural integrity, engine performance analysis</p>
+            </div>
+            <div class="sensor-item">
+                <h4>GPS/Navigation</h4>
+                <p>Position tracking, velocity, trajectory calculation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section">
+        <h2 class="section-title">System Features</h2>
+        
+        <div class="features-grid">
+            <div class="feature-item">
+                <h3>Real-time Monitoring</h3>
+                <p>Live telemetry data streams with sub-second latency. Monitor all critical parameters including altitude, velocity, fuel levels, and engine performance in real-time.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Anomaly Detection</h3>
+                <p>AI-powered fault detection algorithms continuously analyze sensor data to identify potential issues before they become critical mission threats.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Trajectory Analysis</h3>
+                <p>Advanced trajectory prediction and optimization algorithms help ensure precise orbital insertion and mission success rates.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Emergency Response</h3>
+                <p>Automated emergency protocols with instant notifications and guided response procedures for critical mission scenarios.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Data Visualization</h3>
+                <p>Comprehensive dashboards with customizable charts, graphs, and 3D trajectory visualization for complete mission oversight.</p>
+            </div>
+            <div class="feature-item">
+                <h3>API Integration</h3>
+                <p>Robust REST and WebSocket APIs allow seamless integration with existing mission control systems and third-party applications.</p>
+            </div>
+        </div>
+        
+        <table class="feature-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Description</th>
+                    <th>Technical Specs</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Data Refresh Rate</td>
+                    <td>Real-time telemetry updates</td>
+                    <td>1-second intervals, 100ms emergency mode</td>
+                </tr>
+                <tr>
+                    <td>Sensor Compatibility</td>
+                    <td>Multi-vendor sensor support</td>
+                    <td>Compatible with 50+ sensor types</td>
+                </tr>
+                <tr>
+                    <td>Data Storage</td>
+                    <td>Mission data archival</td>
+                    <td>Unlimited retention, 99.9% uptime</td>
+                </tr>
+                <tr>
+                    <td>Alert System</td>
+                    <td>Multi-channel notifications</td>
+                    <td>Email, SMS, webhook integrations</td>
+                </tr>
+                <tr>
+                    <td>User Management</td>
+                    <td>Role-based access control</td>
+                    <td>Enterprise-grade security protocols</td>
+                </tr>
+                <tr>
+                    <td>Scalability</td>
+                    <td>Multi-mission support</td>
+                    <td>Concurrent monitoring of 100+ vehicles</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Q&A Section -->
+    <section class="section">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        
+        <table class="qa-table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Answer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>How fast is the data updated?</td>
+                    <td>Real-time with 1-second refresh rate, with emergency mode providing 100ms updates for critical situations</td>
+                </tr>
+                <tr>
+                    <td>Is there an API available?</td>
+                    <td>Yes, comprehensive REST and WebSocket APIs with full documentation and SDK support for major languages</td>
+                </tr>
+                <tr>
+                    <td>Does it support trajectory prediction?</td>
+                    <td>Yes, built-in algorithms provide real-time trajectory analysis and orbital mechanics calculations</td>
+                </tr>
+                <tr>
+                    <td>Can it detect anomalies automatically?</td>
+                    <td>Yes, AI-driven fault detection continuously monitors all parameters with customizable alert thresholds</td>
+                </tr>
+                <tr>
+                    <td>What about data security?</td>
+                    <td>Enterprise-grade encryption, role-based access control, and compliance with aerospace industry standards</td>
+                </tr>
+                <tr>
+                    <td>Is it compatible with existing systems?</td>
+                    <td>Yes, supports standard aerospace protocols and provides integration adapters for legacy systems</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Rocket Telemetry System – © 2025 OrbitalTech</p>
+        <div class="footer-icons">
+            <svg class="footer-icon" viewBox="0 0 24 24">
+                <path d="m4 4 16 0 0 16-16 0z"/>
+                <path d="m22 6-10 4-10-4"/>
+            </svg>
+            <svg class="footer-icon" viewBox="0 0 24 24">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+            </svg>
+            <svg class="footer-icon" viewBox="0 0 24 24">
+                <path d="m16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                <rect width="4" height="12" x="2" y="9"/>
+                <circle cx="4" cy="4" r="2"/>
+            </svg>
+        </div>
+    </footer>
+</body>
+</html>
