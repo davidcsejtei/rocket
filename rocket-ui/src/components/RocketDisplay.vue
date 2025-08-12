@@ -283,6 +283,7 @@ const getFlameGradient = (status: string, type: 'main' | 'side') => {
 .rocket-container {
   justify-content: center;
   align-items: flex-start;
+  display: flex;
   height: 100vh;
   width: 100vw;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
