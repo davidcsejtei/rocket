@@ -1,8 +1,5 @@
 <template>
   <div class="rocket-container">
-    <!-- Emergency Shutdown Component -->
-    <EmergencyShutdown />
-
     <!-- Celebration Popup -->
     <CelebrationPopup
       v-if="websocketService.celebrationData.value"
@@ -13,6 +10,9 @@
       @dismiss="websocketService.dismissCelebration()"
     />
     <div class="rocket-content">
+      <!-- Emergency Shutdown Component -->
+      <EmergencyShutdown />
+
       <svg
         class="rocket-svg"
         :class="rocketClasses"
