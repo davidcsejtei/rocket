@@ -38,7 +38,7 @@
           </div>
         </div>
         <div class="landing-actions">
-          <button 
+          <button
             class="quick-landing-button"
             @click="initiateQuickLanding"
             :disabled="isQuickLandingActive"
@@ -135,7 +135,7 @@ const initiateQuickLanding = async () => {
 
   isQuickLandingActive.value = true
   console.log('🚀 Quick landing initiated - landing in 10 seconds')
-  
+
   try {
     await websocketService.initiateQuickLanding()
   } catch (error) {
@@ -153,10 +153,10 @@ const resetEmergencyState = () => {
   finalVelocity.value = 0
   landingDuration.value = 0
   landingStartTime.value = 0
-  
+
   // Reset websocket service state (this will clean all data)
   websocketService.resetEmergencyState()
-  
+
   console.log('🔄 Emergency shutdown component reset - Fresh UI state')
 }
 
@@ -180,11 +180,6 @@ watch(currentTelemetry, (newTelemetry) => {
 
 <style scoped>
 .emergency-container {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
   pointer-events: none;
   background: transparent;
 }

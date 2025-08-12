@@ -298,7 +298,6 @@ const getFlameGradient = (status: string, type: 'main' | 'side') => {
   align-items: center;
   gap: 16px;
   width: 100%;
-  max-width: 1400px;
   padding-top: 20px;
 }
 
