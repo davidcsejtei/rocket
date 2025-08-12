@@ -35,144 +35,73 @@ A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJ
 
 ### Required Software
 
-- **Node.js** (v18 or higher)
-- **npm** (v8 or higher)
-- **Apache Kafka** (v2.8 or higher)
-- **Apache Flink** (v1.17 or higher, deployed via Docker)
-- **Docker & Docker Compose** (for running Flink cluster)
-- **Java** (v11 or higher, for running Kafka)
+- **Docker** (v20.10 or higher)
+- **Docker Compose** (v2.0 or higher)
 
 ### Installing Prerequisites
 
-#### 1. Node.js and npm
-- Download and install from [nodejs.org](https://nodejs.org/)
-- Verify installation:
-  ```bash
-  node --version
-  npm --version
-  ```
+#### Docker & Docker Compose
 
-#### 2. Apache Kafka
-- **macOS (using Homebrew):**
-  ```bash
-  brew install kafka
-  ```
+**All services (Kafka, Flink, Backend API, Frontend UI) run via Docker Compose - no manual installation required.**
 
-- **Linux (Ubuntu/Debian):**
-  ```bash
-  wget https://downloads.apache.org/kafka/2.8.2/kafka_2.13-2.8.2.tgz
-  tar -xzf kafka_2.13-2.8.2.tgz
-  cd kafka_2.13-2.8.2
-  ```
-
-- **Windows:**
-  - Download Kafka from [Apache Kafka Downloads](https://kafka.apache.org/downloads)
-  - Extract the archive and add to PATH
-
-#### 3. Java (for Kafka)
-- **macOS:** `brew install openjdk@11`
-- **Linux:** `sudo apt-get install openjdk-11-jdk`
-- **Windows:** Download from [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
-
-#### 4. Docker & Docker Compose (for Flink)
 - **macOS:** Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop/)
 - **Linux (Ubuntu/Debian):**
   ```bash
   sudo apt-get update
-  sudo apt-get install docker.io docker-compose
+  sudo apt-get install docker.io docker-compose-plugin
   sudo systemctl start docker
   sudo usermod -aG docker $USER
   ```
 - **Windows:** Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop/)
 
+**Verify installation:**
+```bash
+docker --version
+docker compose version
+```
+
 ## How to Run Locally
 
-### 1. Start Apache Kafka
-
-#### Start Zookeeper (Terminal 1):
-```bash
-# macOS/Linux
-zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties
-
-# Or if using downloaded Kafka
-bin/zookeeper-server-start.sh config/zookeeper.properties
-```
-
-#### Start Kafka Server (Terminal 2):
-```bash
-# macOS/Linux
-kafka-server-start /usr/local/etc/kafka/server.properties
-
-# Or if using downloaded Kafka
-bin/kafka-server-start.sh config/server.properties
-```
-
-#### Create the Required Topic (Terminal 3):
-```bash
-# Create rocket-telemetry topic
-kafka-topics --create --topic rocket-telemetry --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-
-# Verify topic creation
-kafka-topics --list --bootstrap-server localhost:9092
-```
-
-### 2. Start the Backend API (Terminal 4)
+### 1. Clone and Setup
 
 ```bash
-# Navigate to backend directory
-cd rocket-api
+# Clone the repository
+git clone <repository-url>
+cd rocket
 
-# Copy environment file
+# Copy environment files
 cp .env.example .env
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run start:dev
 ```
 
-The backend will start on `http://localhost:3000`
+### 2. Start All Services
 
-### 3. Start the Frontend UI (Terminal 5)
+**Start the entire system with a single command:**
 
 ```bash
-# Navigate to frontend directory
-cd rocket-ui
+# Start all services (Kafka, Flink, Backend API, Frontend UI, Anomaly Detection)
+docker compose up -d
 
-# Copy environment file
-cp .env.example .env
+# View logs for all services
+docker compose logs -f
 
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
+# View logs for specific service
+docker compose logs -f rocket-api
+docker compose logs -f rocket-ui
+docker compose logs -f pyflink-anomaly-detector
 ```
 
-The frontend will start on `http://localhost:5173`
+**Service URLs:**
+- **Frontend UI**: `http://localhost:5173`
+- **Backend API**: `http://localhost:3000`
+- **Flink Web UI**: `http://localhost:8081`
+- **Kafka**: `localhost:9092` (internal)
 
-### 4. Start PyFlink Anomaly Detection (Terminal 6)
+### 3. Test the System
 
+#### Send Test Telemetry Data:
 ```bash
-# Navigate to PyFlink directory
-cd pyflink-anomaly-detector
-
-# Start Flink cluster and anomaly detection job with Docker Compose
-docker-compose up -d
-
-# View logs
-docker-compose logs -f pyflink-anomaly-detector
-```
-
-The Flink Web UI will be available at `http://localhost:8081`
-
-### 5. Test the System
-
-#### Send Test Telemetry Data (Terminal 7):
-```bash
-# Send a test message to Kafka
-kafka-console-producer --topic rocket-telemetry --bootstrap-server localhost:9092
+# Use Kafka console producer via Docker
+docker compose exec kafka kafka-console-producer --topic rocket-telemetry --bootstrap-server localhost:9092
 ```
 
 Then paste this JSON message:
@@ -182,7 +111,7 @@ Then paste this JSON message:
 
 Press Enter to send the message. You should see it appear in the UI immediately with comprehensive telemetry data.
 
-#### Test Anomaly Detection (Terminal 7):
+#### Test Anomaly Detection:
 
 Send a message with anomalous values to trigger alerts:
 ```json
@@ -203,19 +132,33 @@ You should see these anomalies appear in the System Alerts panel with appropriat
 
 ## Environment Variables
 
-### Backend (.env)
+### Root (.env)
 ```bash
-FRONTEND_URL=http://localhost:5173
-PORT=3000
-KAFKA_BROKERS=localhost:9092
+# Application Ports
+FRONTEND_PORT=5173
+BACKEND_PORT=3000
+FLINK_WEB_UI_PORT=8081
+
+# Service URLs (Docker internal networking)
+FRONTEND_URL=http://rocket-ui:5173
+BACKEND_URL=http://rocket-api:3000
+KAFKA_BROKERS=kafka:29092
+KAFKA_EXTERNAL_PORT=9092
+
+# Kafka Configuration
 KAFKA_CLIENT_ID=rocket-api
 KAFKA_CONSUMER_GROUP=rocket-api-consumers
+KAFKA_ANOMALY_CONSUMER_GROUP=rocket-api-anomaly-consumers
+
+# Flink Configuration
+FLINK_JOBMANAGER_ADDRESS=flink-jobmanager:8081
+
+# WebSocket Configuration
+VITE_WEBSOCKET_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
-### Frontend (.env)
-```bash
-VITE_WEBSOCKET_URL=http://localhost:3000
-```
+**Note**: All services communicate via Docker internal networking. External access is available through mapped ports.
 
 ## Project Structure
 
@@ -244,23 +187,26 @@ rocket/
 
 ## Available Scripts
 
-### Backend (rocket-api)
-- `npm run start:dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run start:prod` - Start production server
-- `npm run test` - Run tests
+### Main Docker Compose Commands
+- `docker compose up -d` - Start all services in detached mode
+- `docker compose up` - Start all services with logs
+- `docker compose down` - Stop all services and remove containers
+- `docker compose down -v` - Stop all services and remove containers with volumes
+- `docker compose restart` - Restart all services
+- `docker compose logs -f` - Follow logs for all services
+- `docker compose logs -f <service-name>` - Follow logs for specific service
 
-### Frontend (rocket-ui)
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test:unit` - Run unit tests
+### Individual Service Management
+- `docker compose up -d kafka` - Start only Kafka and its dependencies
+- `docker compose up -d flink-jobmanager flink-taskmanager` - Start only Flink cluster
+- `docker compose restart rocket-api` - Restart backend API
+- `docker compose restart rocket-ui` - Restart frontend UI
+- `docker compose restart pyflink-anomaly-detector` - Restart anomaly detection
 
-### PyFlink Anomaly Detection (pyflink-anomaly-detector)
-- `docker-compose up -d` - Start Flink cluster and anomaly detection job
-- `docker-compose down` - Stop Flink cluster and clean up containers
-- `docker-compose logs -f pyflink-anomaly-detector` - View anomaly detection job logs
-- `docker-compose restart pyflink-anomaly-detector` - Restart anomaly detection job
+### Development Commands
+- `docker compose exec rocket-api npm run test` - Run backend tests
+- `docker compose exec rocket-ui npm run test:unit` - Run frontend tests
+- `docker compose exec kafka kafka-topics --list --bootstrap-server localhost:9092` - List Kafka topics
 
 ## Telemetry Data Format
 
@@ -323,26 +269,59 @@ The system expects Kafka messages in the following comprehensive JSON format:
 
 ### Common Issues
 
-1. **Kafka Connection Failed**
-   - Ensure Kafka and Zookeeper are running
-   - Verify the topic `rocket-telemetry` exists
-   - Check that port 9092 is available
+1. **Services Not Starting**
+   ```bash
+   # Check if Docker is running
+   docker info
+   
+   # Check service status
+   docker compose ps
+   
+   # View service logs
+   docker compose logs <service-name>
+   ```
 
-2. **WebSocket Connection Failed**
-   - Ensure backend is running on port 3000
-   - Check firewall settings
-   - Verify CORS configuration
+2. **Port Conflicts**
+   ```bash
+   # Check what's using the ports
+   sudo lsof -i :3000  # Backend
+   sudo lsof -i :5173  # Frontend
+   sudo lsof -i :8081  # Flink Web UI
+   sudo lsof -i :9092  # Kafka
+   ```
 
-3. **Frontend Not Loading**
-   - Ensure all dependencies are installed (`npm install`)
-   - Check that port 5173 is available
-   - Verify environment variables are set
+3. **Kafka Connection Issues**
+   ```bash
+   # Check Kafka container
+   docker compose logs kafka
+   
+   # Verify topics exist
+   docker compose exec kafka kafka-topics --list --bootstrap-server localhost:9092
+   ```
+
+4. **Flink Job Issues**
+   ```bash
+   # Check Flink logs
+   docker compose logs flink-jobmanager
+   docker compose logs flink-taskmanager
+   docker compose logs pyflink-anomaly-detector
+   ```
 
 ### Logs and Debugging
 
-- **Backend logs**: Check the terminal running `npm run start:dev`
-- **Frontend logs**: Check browser developer console
-- **Kafka logs**: Check Kafka server terminal output
+- **All services**: `docker compose logs -f`
+- **Backend API**: `docker compose logs -f rocket-api`
+- **Frontend UI**: `docker compose logs -f rocket-ui`
+- **Kafka**: `docker compose logs -f kafka`
+- **Flink**: `docker compose logs -f flink-jobmanager`
+- **Anomaly Detection**: `docker compose logs -f pyflink-anomaly-detector`
+
+### Clean Restart
+```bash
+# Complete reset
+docker compose down -v
+docker compose up -d
+```
 
 ## Contributing
 
