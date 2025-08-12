@@ -1,13 +1,15 @@
 # Rocket Telemetry System
 
-A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJS backend, WebSockets, and Apache Kafka for streaming data processing.
+A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJS backend, WebSockets, Apache Kafka for streaming data processing, and Apache Flink (PyFlink) for real-time anomaly detection.
 
 ## Features
 
 - 🚀 **Animated Rocket Display**: Interactive SVG rocket with animated flame effects
 - 🔗 **Real-time WebSocket Connection**: Live connection status monitoring
 - 📡 **Kafka Integration**: Real-time telemetry data streaming from Apache Kafka
+- 🔍 **PyFlink Anomaly Detection**: Real-time anomaly detection using Apache Flink for critical system monitoring
 - 📊 **Live Telemetry Dashboard**: Display of rocket altitude, velocity, fuel, temperature, and status
+- 🚨 **System Alerts**: Real-time anomaly alerts with severity-based visual indicators
 - 🌐 **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - ⚡ **TypeScript**: Full type safety across frontend and backend
 
@@ -18,6 +20,15 @@ A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJ
 │   Vue 3 Frontend│◄──────────────►│  NestJS Backend │◄────────────►│  Apache Kafka   │
 │   (rocket-ui)   │                 │   (rocket-api)  │              │                 │
 └─────────────────┘                 └─────────────────┘              └─────────────────┘
+                                            ▲                                │
+                                            │                                │
+                                            │ anomalies                      │ telemetry
+                                            │                                │
+                                            │                                ▼
+                                    ┌─────────────────┐              ┌─────────────────┐
+                                    │ PyFlink Anomaly │◄─────────────│ Apache Flink    │
+                                    │ Detection Job   │              │ Cluster         │
+                                    └─────────────────┘              └─────────────────┘
 ```
 
 ## Prerequisites
@@ -27,6 +38,8 @@ A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJ
 - **Node.js** (v18 or higher)
 - **npm** (v8 or higher)
 - **Apache Kafka** (v2.8 or higher)
+- **Apache Flink** (v1.17 or higher, deployed via Docker)
+- **Docker & Docker Compose** (for running Flink cluster)
 - **Java** (v11 or higher, for running Kafka)
 
 ### Installing Prerequisites
@@ -60,6 +73,17 @@ A real-time rocket telemetry monitoring system built with Vue.js frontend, NestJ
 - **macOS:** `brew install openjdk@11`
 - **Linux:** `sudo apt-get install openjdk-11-jdk`
 - **Windows:** Download from [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
+
+#### 4. Docker & Docker Compose (for Flink)
+- **macOS:** Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop/)
+- **Linux (Ubuntu/Debian):**
+  ```bash
+  sudo apt-get update
+  sudo apt-get install docker.io docker-compose
+  sudo systemctl start docker
+  sudo usermod -aG docker $USER
+  ```
+- **Windows:** Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop/)
 
 ## How to Run Locally
 
@@ -197,19 +221,24 @@ VITE_WEBSOCKET_URL=http://localhost:3000
 
 ```
 rocket/
-├── rocket-api/          # NestJS Backend
+├── rocket-api/                    # NestJS Backend
 │   ├── src/
-│   │   ├── kafka/       # Kafka service and configuration
-│   │   ├── websocket/   # WebSocket gateway
-│   │   └── types/       # TypeScript type definitions
+│   │   ├── kafka/                 # Kafka service and configuration
+│   │   ├── websocket/             # WebSocket gateway
+│   │   └── types/                 # TypeScript type definitions
 │   └── package.json
-├── rocket-ui/           # Vue.js Frontend
+├── rocket-ui/                     # Vue.js Frontend
 │   ├── src/
-│   │   ├── components/  # Vue components
-│   │   ├── services/    # WebSocket and business logic
-│   │   └── types/       # TypeScript interfaces
+│   │   ├── components/            # Vue components
+│   │   ├── services/              # WebSocket and business logic
+│   │   └── types/                 # TypeScript interfaces
 │   └── package.json
-├── docs/prd/           # Product Requirements Documents
+├── pyflink-anomaly-detector/      # PyFlink Anomaly Detection
+│   ├── docker-compose.yml         # Flink cluster configuration
+│   ├── Dockerfile                 # PyFlink job container
+│   ├── anomaly_detector.py        # Anomaly detection logic
+│   └── .env.example               # Environment configuration
+├── docs/prd/                      # Product Requirements Documents
 └── README.md
 ```
 
@@ -226,6 +255,12 @@ rocket/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run test:unit` - Run unit tests
+
+### PyFlink Anomaly Detection (pyflink-anomaly-detector)
+- `docker-compose up -d` - Start Flink cluster and anomaly detection job
+- `docker-compose down` - Stop Flink cluster and clean up containers
+- `docker-compose logs -f pyflink-anomaly-detector` - View anomaly detection job logs
+- `docker-compose restart pyflink-anomaly-detector` - Restart anomaly detection job
 
 ## Telemetry Data Format
 
